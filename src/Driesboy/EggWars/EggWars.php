@@ -480,19 +480,19 @@ class EggWars extends PluginBase{
     }
   }
   public function lightning($x, $y, $z, $level){
-  		$pk = new AddEntityPacket();
-      $pk->type = 93;
-      $pk->eid = Entity::$entityCount++;
-  		$pk->entityRuntimeId = Entity::$entityCount++;
-  		$pk->x = $x;
-  		$pk->y = $y;
-  		$pk->z = $z;
-  		$pk->speedX = 0;
-  		$pk->speedY = 0;
-  		$pk->speedZ = 0;
-  		$pk->metadata = array();
-      foreach($level->getPlayers() as $pl){
-        $pl->dataPacket($pk);
-      }
-  	}
+    $pk = new AddEntityPacket();
+    $pk->type = 93;
+    $pk->eid = Entity::$entityCount++;
+    $pk->entityRuntimeId = Entity::$entityCount++;
+    $pk->x = $x;
+    $pk->y = $y;
+    $pk->z = $z;
+    $pk->speedX = 0;
+    $pk->speedY = 0;
+    $pk->speedZ = 0;
+    $pk->metadata = array();
+    foreach($level->getPlayers() as $pl){
+      $pl->dataPacket($pk);
+    }
+  }
 }
