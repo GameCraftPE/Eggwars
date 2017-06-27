@@ -22,7 +22,7 @@ use pocketmine\nbt\tag\StringTag;
 use pocketmine\tile\Chest;
 use pocketmine\tile\Tile;
 use pocketmine\entity\Entity;
-use pocketmine\network\protocol\AddEntityPacket;
+use pocketmine\network\mcpe\protocol\AddEntityPacket;
 
 class EggWars extends PluginBase{
 
