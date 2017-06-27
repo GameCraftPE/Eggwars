@@ -246,7 +246,7 @@ class EventListener implements Listener{
             $e->setCancelled();
           }else{
             $b->getLevel()->setBlock(new Vector3($b->x, $b->y, $b->z), Block::get(0));
-            $main->CreateLightning($b->x, $b->y, $b->z, $o->getLevel());
+            $main->lightning($b->x, $b->y, $b->z, $o->getLevel());
             $arena = $main->IsInArena($o->getName());
             $main->ky[$arena][] = $Team;
             $main->ArenaMessage($main->IsInArena($o->getName()), "§eTeam " .$main->Teams()[$Team]."$Team's".$main->Teams()[$oht]." §eegg has been destroyed by " .$o->getNameTag());
