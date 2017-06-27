@@ -6,6 +6,7 @@ use Driesboy\EggWars\Command\Lobby;
 use Driesboy\EggWars\Command\EW;
 use Driesboy\EggWars\Task\Game;
 use Driesboy\EggWars\Task\SignManager;
+use Driesboy\EggWars\Task\StackTask;
 use pocketmine\item\Item;
 use pocketmine\level\Level;
 use pocketmine\Player;
@@ -94,7 +95,7 @@ class EggWars extends PluginBase{
     if(@in_array($isim, $Players)){
       $o = Server::getInstance()->getPlayer($isim);
       if($o instanceof Player && $oa != 1){
-        $o->setNameTag($this->getServer()->getPluginManager()->getPlugin("PureChat")->getNametag($o););
+        $o->setNameTag($this->getServer()->getPluginManager()->getPlugin("PureChat")->getNametag($o));
         $o->getInventory()->clearAll();
         $o->setHealth(20);
         $o->setFood(20);
@@ -481,8 +482,8 @@ class EggWars extends PluginBase{
   public function lightning($x, $y, $z, $level){
   		$pk = new AddEntityPacket();
       $pk->type = 93;
-      $pk->eid = $this->getId();
-  		$pk->entityRuntimeId = $this->getId();
+      $pk->eid = Entity::$entityCount++;
+  		$pk->entityRuntimeId = Entity::$entityCount++;
   		$pk->x = $x;
   		$pk->y = $y;
   		$pk->z = $z;
