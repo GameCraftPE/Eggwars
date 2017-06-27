@@ -9,6 +9,7 @@ use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerChatEvent;
+use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\block\SignChangeEvent;
 use pocketmine\event\block\BlockBreakEvent;
@@ -29,11 +30,24 @@ use pocketmine\Server;
 use pocketmine\math\Vector3;
 use pocketmine\utils\Config;
 
+use pocketmine\network\mcpe\protocol\ContainerSetContentPacket;
+use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
+use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 
 class EventListener implements Listener{
 
   public $sd = array();
   public function __construct(){
+  }
+
+  public function OnJoin(PlayerJoinEvent $e){
+    if ($e->getPlayer()->hasPermission("rank.diamond")){
+      $e->getPlayer()->setGamemode("1");
+      $pk = new ContainerSetContentPacket();
+      $pk->windowid = ContainerSetContentPacket::SPECIAL_CREATIVE;
+      $pk->targetEid = $e->getPlayer()->getId();
+      $e->getPlayer()->dataPacket($pk);
+    }
   }
 
   public function OnQuit(PlayerQuitEvent $e){
@@ -48,41 +62,58 @@ class EventListener implements Listener{
     }
   }
 
+  /**
+  * Priority is the MONITOR so it can pass PureChat plugin priority.
+  *
+  * @param PlayerChatEvent $e
+  * @priority MONITOR
+  */
   public function Chat(PlayerChatEvent $e){
     $o = $e->getPlayer();
     $m = $e->getMessage();
     $main = EggWars::getInstance();
-
     if($main->IsInArena($o->getName())){
       $color = "";
       $is = substr($m, 0, 1);
       $Team = $main->PlayerTeamColor($o);
       $arena = $main->IsInArena($o->getName());
       $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
+      $Players = $main->ArenaPlayer($arena);
       if($ac->get("Status") === "Lobby"){
-        $Players = $main->ArenaPlayer($arena);
-        foreach($Players as $Is){
-          $to = $main->getServer()->getPlayer($Is);
+        foreach($Players as $p){
+          $to = $main->getServer()->getPlayer($p);
           if($to instanceof Player){
-            $to->sendMessage("§f".$o->getName()." §8» §7".$m);
+            $chatFormat = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($o, $m);
+            $to->sendMessage($chatFormat);
+            $e->setCancelled();
           }
         }
       }
       if(!empty($main->Teams()[$Team])){
         $color = $main->Teams()[$Team];
       }
-      if($is === "!"){
-        $msil = substr($m, 1);
-        $main->ArenaMessage($arena, "§8[§c!§8] ".$color.$o->getName()." §8» §7$msil");
-      }else{
-        $Players = $main->ArenaPlayer($arena);
-        foreach($Players as $Is){
-          $to = $main->getServer()->getPlayer($Is);
-          if($to instanceof Player){
-            $toTeam = $main->PlayerTeamColor($to);
-            if($Team === $toTeam){
-              $message = "§8[".$color."team§8] ".$color.$o->getName()." §8» §7$m";
-              $to->sendMessage($message);
+      if ($ac->get("Status") != "Lobby"){
+        if($is === "!"){
+          foreach($Players as $p){
+            $to = $main->getServer()->getPlayer($p);
+            if($to instanceof Player){
+              $msil = substr($m, 1);
+              $chatFormat = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($o, $msil);
+              $to->sendMessage($chatFormat);
+              $e->setCancelled();
+            }
+          }
+        }else{
+          foreach($Players as $p){
+            $to = $main->getServer()->getPlayer($p);
+            if($to instanceof Player){
+              $toTeam = $main->PlayerTeamColor($to);
+              if($Team === $toTeam){
+                $Format = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($o, $m);
+                $message = "§8[".$color."team§8] ". $Format;
+                $to->sendMessage($message);
+                $e->setCancelled();
+              }
             }
           }
         }
@@ -143,7 +174,7 @@ class EventListener implements Listener{
             case "§6Gold":
             if($main->ItemId($o, Item::GOLD_INGOT) >= 5){
               $o->getInventory()->removeItem(Item::get(Item::GOLD_INGOT,0,5));
-              $sign->setText($y[0], "§eLevel 1", "§b8 seconds", $y[3]);
+              $sign->setText($y[0], "§eLevel 1", "§b4 seconds", $y[3]);
               $o->sendMessage("§8» §aGold generator Activated!");
             }else{
               $o->sendMessage("§8» §65 Gold needed to upgrade!");
@@ -152,7 +183,7 @@ class EventListener implements Listener{
             case "§bDiamond":
             if($main->ItemId($o, Item::DIAMOND) >= 5){
               $o->getInventory()->removeItem(Item::get(Item::DIAMOND,0,5));
-              $sign->setText($y[0], "§eLevel 1", "§b10 seconds", $y[3]);
+              $sign->setText($y[0], "§eLevel 1", "§b5 seconds", $y[3]);
               $o->sendMessage("§8» §aDiamond generator Activated!");
             }else{
               $o->sendMessage("§8» §b5 Diamonds needed to upgrade!");
@@ -174,7 +205,7 @@ class EventListener implements Listener{
             case "§6Gold":
             if($main->ItemId($o, Item::GOLD_INGOT) >= 10){
               $o->getInventory()->removeItem(Item::get(Item::GOLD_INGOT,0,10));
-              $sign->setText($y[0], "§eLevel 2", "§b6 seconds", $y[3]);
+              $sign->setText($y[0], "§eLevel 2", "§b3 seconds", $y[3]);
               $o->sendMessage("§8» §aUpgraded to level 2!");
             }else{
               $o->sendMessage("§8» §610 Gold needed to upgrade!");
@@ -183,7 +214,7 @@ class EventListener implements Listener{
             case "§bDiamond":
             if($main->ItemId($o, Item::DIAMOND) >= 10){
               $o->getInventory()->removeItem(Item::get(Item::DIAMOND,0,10));
-              $sign->setText($y[0], "§eLevel 2", "§b8 seconds", $y[3]);
+              $sign->setText($y[0], "§eLevel 2", "§b4 seconds", $y[3]);
               $o->sendMessage("§8» §aUpgraded to level 2!");
             }else{
               $o->sendMessage("§8» §b10 Diamonds needed to upgrade!");
@@ -205,7 +236,7 @@ class EventListener implements Listener{
             case "§6Gold":
             if($main->ItemId($o, Item::DIAMOND) >= 10){
               $o->getInventory()->removeItem(Item::get(Item::DIAMOND,0,10));
-              $sign->setText($y[0], "§eLevel 3", "§b4 seconds", "§c§lMAXIMUM");
+              $sign->setText($y[0], "§eLevel 3", "§b2 seconds", "§c§lMAXIMUM");
               $o->sendMessage("§8» §aMaximum Level raised!");
             }else{
               $o->sendMessage("§8» §b10 Diamonds needed to upgrade!");
@@ -214,7 +245,7 @@ class EventListener implements Listener{
             case "§bDiamond":
             if($main->ItemId($o, Item::DIAMOND) >= 20){
               $o->getInventory()->removeItem(Item::get(Item::DIAMOND,0,20));
-              $sign->setText($y[0], "§eLevel 3", "§b6 seconds", "§c§lMAXIMUM");
+              $sign->setText($y[0], "§eLevel 3", "§b3 seconds", "§c§lMAXIMUM");
               $o->sendMessage("§8» §aMaximum Level raised!");
             }else{
               $o->sendMessage("§8» §b20 Diamonds needed to upgrade!");
@@ -365,6 +396,9 @@ class EventListener implements Listener{
   public function Damage(EntityDamageEvent $e){
     $o = $e->getEntity();
     $main = EggWars::getInstance();
+    if($o->getLevel()->getName() === "ELobby"){
+      $e->setCancelled();
+    }
     if($e instanceof EntityDamageByEntityEvent){
       $d = $e->getDamager();
       if($o instanceof Villager && $d instanceof Player){
@@ -442,6 +476,21 @@ class EventListener implements Listener{
             $o->getInventory()->clearAll();
           }
         }
+      }
+    }
+  }
+
+  public function onMove(PlayerMoveEvent $e){
+    $o = $e->getPlayer();
+    $main = EggWars::getInstance();
+    if ($o->getLevel()->getFolderName() === "ELobby"){
+      if($e->getTo()->getFloorY() < 3){
+        $o->teleport($o->getLevel()->getSafeSpawn());
+      }
+    }
+    if ($o->getLevel()->getFolderName() === "EWaiting"){
+      if($e->getTo()->getFloorY() < 3){
+        $o->teleport($o->getLevel()->getSafeSpawn());;
       }
     }
   }
@@ -568,6 +617,11 @@ class EventListener implements Listener{
     $o = $e->getPlayer();
     $b = $e->getBlock();
     $main = EggWars::getInstance();
+    if($o->getLevel()->getName() === "ELobby"){
+      if (!$o->isOP()){
+        $e->setCancelled();
+      }
+    }
     if($main->IsInArena($o->getName())){
       $cfg = new Config($main->getDataFolder()."config.yml", Config::YAML);
       $ad = $main->ArenaStatus($main->IsInArena($o->getName()));
@@ -595,6 +649,11 @@ class EventListener implements Listener{
     $o = $e->getPlayer();
     $b = $e->getBlock();
     $main = EggWars::getInstance();
+    if($o->getLevel()->getName() === "ELobby"){
+      if (!$o->isOP()){
+        $e->setCancelled();
+      }
+    }
     $cfg = new Config($main->getDataFolder()."config.yml", Config::YAML);
     if($main->IsInArena($o->getName())){
       $ad = $main->ArenaStatus($main->IsInArena($o->getName()));

@@ -8,11 +8,11 @@ use pocketmine\command\CommandSender;
 use pocketmine\Server;
 use pocketmine\utils\Config;
 
-class Hub extends Command{
+class Lobby extends Command{
 
   public function __construct(){
-    parent::__construct("hub", "Hub Command");
-    $this->setAliases(array("lobby", "spawn"));
+    parent::__construct("lobby", "lobby Command");
+    $this->setAliases(array("leave", "quit", "spawn"));
   }
 
   public function execute(CommandSender $g, $label, array $args){

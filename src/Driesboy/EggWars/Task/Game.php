@@ -22,6 +22,14 @@ class Game extends PluginTask{
 
   public function onRun($tick){
     $main = $this->p;
+    $pl = $main->getServer()->getOnlinePlayers();
+    foreach($pl as $p){
+      if($p->getLevel()->getFolderName() === "ELobby"){
+        if(!$p->getInventory()->getItemInHand()->hasEnchantments()){
+          $p->sendPopup(TF::GRAY."You are playing on ".TF::BOLD.TF::BLUE."GameCraft PE EggWars".TF::RESET."\n".TF::DARK_GRAY."[".TF::LIGHT_PURPLE.count($main->getServer()->getOnlinePlayers()).TF::DARK_GRAY."/".TF::LIGHT_PURPLE.$main->getServer()->getMaxPlayers().TF::DARK_GRAY."] | ".TF::YELLOW."$".$main->getServer()->getPluginManager()->getPlugin("EconomyAPI")->myMoney($p).TF::DARK_GRAY." | ".TF::BOLD.TF::AQUA."Vote: ".TF::RESET.TF::GREEN."vote.gamecraftpe.tk");
+        }
+      }
+    }
     foreach($main->Arenas() as $arena){
       if($main->ArenaReady($arena)){
         $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);

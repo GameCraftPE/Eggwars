@@ -2,7 +2,7 @@
 
 namespace Driesboy\EggWars;
 
-use Driesboy\EggWars\Command\Hub;
+use Driesboy\EggWars\Command\Lobby;
 use Driesboy\EggWars\Command\EW;
 use Driesboy\EggWars\Task\Game;
 use Driesboy\EggWars\Task\SignManager;
@@ -23,6 +23,10 @@ use pocketmine\tile\Chest;
 use pocketmine\tile\Tile;
 use pocketmine\entity\Entity;
 use pocketmine\network\mcpe\protocol\AddEntityPacket;
+
+use pocketmine\network\mcpe\protocol\ContainerSetContentPacket;
+use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
+use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 
 class EggWars extends PluginBase{
 
@@ -54,7 +58,7 @@ class EggWars extends PluginBase{
     Server::getInstance()->getScheduler()->scheduleRepeatingTask(new Game($this), 20);
     Server::getInstance()->getScheduler()->scheduleDelayedRepeatingTask(new StackTask($this), 15, 15);
     Server::getInstance()->getCommandMap()->register("ew", new EW());
-    Server::getInstance()->getCommandMap()->register("hub", new Hub());
+    Server::getInstance()->getCommandMap()->register("lobby", new Lobby());
   }
 
   public function PrepareArenas(){
@@ -90,7 +94,7 @@ class EggWars extends PluginBase{
     if(@in_array($isim, $Players)){
       $o = Server::getInstance()->getPlayer($isim);
       if($o instanceof Player && $oa != 1){
-        $o->setNameTag($o->getName());
+        $o->setNameTag($this->getServer()->getPluginManager()->getPlugin("PureChat")->getNametag($o););
         $o->getInventory()->clearAll();
         $o->setHealth(20);
         $o->setFood(20);
