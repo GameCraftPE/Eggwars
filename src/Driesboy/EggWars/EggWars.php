@@ -52,6 +52,7 @@ class EggWars extends PluginBase{
     Server::getInstance()->getPluginManager()->registerEvents(new EventListener(), $this);
     Server::getInstance()->getScheduler()->scheduleRepeatingTask(new SignManager($this), 20);
     Server::getInstance()->getScheduler()->scheduleRepeatingTask(new Game($this), 20);
+    Server::getInstance()->getScheduler()->scheduleDelayedRepeatingTask(new StackTask($this), 15, 15);
     Server::getInstance()->getCommandMap()->register("ew", new EW());
     Server::getInstance()->getCommandMap()->register("hub", new Hub());
   }
@@ -94,6 +95,13 @@ class EggWars extends PluginBase{
         $o->setHealth(20);
         $o->setFood(20);
         $o->teleport(Server::getInstance()->getDefaultLevel()->getSafeSpawn());
+        if ($o->hasPermission("rank.diamond")){
+          $o->setGamemode("1");
+          $pk = new ContainerSetContentPacket();
+          $pk->targetEid = $o->getId();
+          $pk->windowid = ContainerSetContentPacket::SPECIAL_CREATIVE;
+          $o->dataPacket($pk);
+        }
       }
       $key = array_search($isim, $Players);
       unset($Players[$key]);
@@ -466,20 +474,20 @@ class EggWars extends PluginBase{
       $o->addWindow($tile->getInventory());
     }
   }
-
-  public static function CreateLightning($x, $y, $z, $level){
-    $lightning = new AddEntityPacket();
-    $lightning->metadata = array();
-    $lightning->type = 93;
-    $lightning->eid = Entity::$entityCount++;
-    $lightning->speedX = 0;
-    $lightning->speedY = 0;
-    $lightning->speedZ = 0;
-    $lightning->x = $x;
-    $lightning->y = $y;
-    $lightning->z = $z;
-    foreach($level->getPlayers() as $pl){
-      $pl->dataPacket($lightning);
-    }
-  }
+  public function lightning($x, $y, $z, $level){
+  		$pk = new AddEntityPacket();
+      $pk->type = 93;
+      $pk->eid = $this->getId();
+  		$pk->entityRuntimeId = $this->getId();
+  		$pk->x = $x;
+  		$pk->y = $y;
+  		$pk->z = $z;
+  		$pk->speedX = 0;
+  		$pk->speedY = 0;
+  		$pk->speedZ = 0;
+  		$pk->metadata = array();
+      foreach($level->getPlayers() as $pl){
+        $pl->dataPacket($pk);
+      }
+  	}
 }
