@@ -1,35 +1,43 @@
 # Plugin coding: Enes5519 & Driesboy
-# Only works on PMMP and BlueLight
-
-### API3 -> https://github.com/NL-4-DEVS/Eggwars/tree/API3
+# Only works on PMMP
 
 [![Poggit-CI](https://poggit.pmmp.io/ci.badge/NL-4-DEVS/Eggwars/Eggwars)](https://poggit.pmmp.io/ci/NL-4-DEVS/Eggwars/Eggwars)
 
-Hi, the installation of the plugin I'm telling you now.
- 
-#If you have drop lagg use this plugin https://github.com/thebigsmileXD/ItemStacks
+[Latest Release](https://poggit.pmmp.io/ci/NL-4-DEVS/Eggwars/Eggwars)
 
-### Note: You do not change the colors of the text on the sign. (Professionals can change)
 
-## EGG WARS SHOP
-### - EggWars Shop Setup: /ew shop (Villager creates.)
+If you have lagg drops use [this plugin](https://github.com/thebigsmileXD/ItemStacks) to stack your items
 
-## EGG WARS GENERATOR
-### EggWars Generator Setup with Sign;
+## How to spawn the Eggwars Shop
+### - /ew shop
 
-### Iron Generator;
+## How to setup the Generator with a sign
+
 #### First Line: generator
-#### Second Line: Iron
+#### Second Line: Iron , Gold or Diamond
+#### Third Line: Broken (If generator need to be broken)
 
-### Gold Generator;
-#### First Line: generator
-#### Second Line: Gold
-#### Third Line: Broken (If break generator)
+## How to setup the team egg
+### Place the Dragon Egg on the top of the team color wool.
 
-### Diamond Generator;
-#### First Line: generator
-#### Second Line: Diamond
-#### Third Line: Broken
+## How to create a arena
+### /ew create <arena> <teams> <PlayersPerTeam>
 
-## EGG WARS TEAM EGG SETUP
-### Place the Team Color Wool and put the Egg on top.
+## How to set a team spawn
+### /ew set <arena> <teamcolor>
+
+## All the colors
+### - ORANGE
+### - PURPLE
+### - LIGHT-BLUE
+### - YELLOW
+### - GREEN
+### - GRAY
+### - BLUE
+### - RED
+
+## How to set the waitinglobby
+### /ew lobby <arena>
+
+## How to save the map
+### /ew save <arena>
