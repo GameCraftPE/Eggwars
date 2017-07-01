@@ -195,8 +195,8 @@ class EventListener implements Listener{
           switch ($tip){
             case "§fIron":
             if($main->ItemId($o, Item::IRON_INGOT) >= 20){
-              $o->getInventory()->removeItem(Item::get(Item::IRON_INGOT,0,10));
-              $sign->setText($y[0], "§eLevel 2", "§b0.75 seconds", $y[3]);
+              $o->getInventory()->removeItem(Item::get(Item::IRON_INGOT,0,20));
+              $sign->setText($y[0], "§eLevel 2", "§b3 seconds", $y[3]);
               $o->sendMessage("§aUpgraded generator!");
             }else{
               $o->sendMessage("§8» §f20 Iron needed to upgrade!");
@@ -205,7 +205,7 @@ class EventListener implements Listener{
             case "§6Gold":
             if($main->ItemId($o, Item::GOLD_INGOT) >= 10){
               $o->getInventory()->removeItem(Item::get(Item::GOLD_INGOT,0,10));
-              $sign->setText($y[0], "§eLevel 2", "§b3.5 seconds", $y[3]);
+              $sign->setText($y[0], "§eLevel 2", "§b4 seconds", $y[3]);
               $o->sendMessage("§aUpgraded generator!");
             }else{
               $o->sendMessage("§8» §610 Gold needed to upgrade!");
@@ -227,7 +227,7 @@ class EventListener implements Listener{
             case "§fIron":
             if($main->ItemId($o, Item::GOLD_INGOT) >= 20){
               $o->getInventory()->removeItem(Item::get(Item::GOLD_INGOT,0,20));
-              $sign->setText($y[0], "§eLevel 3", "§b0.5 seconds", $y[3]);
+              $sign->setText($y[0], "§eLevel 3", "§b2 seconds", $y[3]);
               $o->sendMessage("§aUpgraded generator!");
             }else{
               $o->sendMessage("§8» §620 Gold needed to upgrade!");
@@ -244,8 +244,8 @@ class EventListener implements Listener{
             break;
             case "§bDiamond":
             if($main->ItemId($o, Item::DIAMOND) >= 25){
-              $o->getInventory()->removeItem(Item::get(Item::DIAMOND,0,20));
-              $sign->setText($y[0], "§eLevel 3", "§b2.5 seconds", "§c§lMAXIMUM");
+              $o->getInventory()->removeItem(Item::get(Item::DIAMOND,0,25));
+              $sign->setText($y[0], "§eLevel 3", "§b3 seconds", "§c§lMAXIMUM");
               $o->sendMessage("§aUpgraded generator!");;
             }else{
               $o->sendMessage("§8» §b25 Diamonds needed to upgrade!");
@@ -258,7 +258,7 @@ class EventListener implements Listener{
             case "§fIron":
             if($main->ItemId($o, Item::GOLD_INGOT) >= 50){
               $o->getInventory()->removeItem(Item::get(Item::GOLD_INGOT,0,50));
-              $sign->setText($y[0], "§eLevel 4", "§b0.25 seconds", "§c§lMAXIMUM");
+              $sign->setText($y[0], "§eLevel 4", "§b1 seconds", "§c§lMAXIMUM");
               $o->sendMessage("§aUpgraded generator!");
             }else{
               $o->sendMessage("§8» §650 Gold needed to upgrade!");
@@ -349,7 +349,7 @@ class EventListener implements Listener{
             case "Iron":
             $e->setLine(0, "§fIron");
             $e->setLine(1, "§eLevel 1");
-            $e->setLine(2, "§b1 seconds");
+            $e->setLine(2, "§b4 seconds");
             $e->setLine(3, "§a§lUpgrade");
             break;
             case "Gold":
