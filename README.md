@@ -1,5 +1,6 @@
 # Plugin coding: Enes5519 & Driesboy
 # Only works on PMMP
+# Test server: gamecraftpe.tk
 
 [![Poggit-CI](https://poggit.pmmp.io/ci.badge/NL-4-DEVS/Eggwars/Eggwars)](https://poggit.pmmp.io/ci/NL-4-DEVS/Eggwars/Eggwars)
 
