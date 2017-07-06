@@ -273,6 +273,7 @@ class EventListener implements Listener{
               $o->sendMessage("§8» §b25 Diamonds needed to upgrade!");
             }
             break;
+
           }
           break;
           default:
