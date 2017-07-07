@@ -356,7 +356,7 @@ class EventListener implements Listener{
             case "Gold":
             if($e->getLine(2) != "Broken") {
               $e->setLine(0, "§6Gold");
-              $e->setLine(1, "§eLevel 5");
+              $e->setLine(1, "§eLevel 1");
               $e->setLine(2, "§b8 seconds");
               $e->setLine(3, "§a§lUpgrade");
             }else{
@@ -672,7 +672,7 @@ class EventListener implements Listener{
     $o = $e->getPlayer();
     $b = $e->getBlock();
     $main = EggWars::getInstance();
-    if($o->getLevel()->getName() === "ELobby"){
+    if($o->getLevel()->getName() === "ELobby" ||  $o->getLevel()->getName() === "EWaiting"){
       if (!$o->isOP()){
         $e->setCancelled();
       }
