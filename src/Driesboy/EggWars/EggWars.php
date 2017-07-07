@@ -162,7 +162,7 @@ class EggWars extends PluginBase{
       "PURPLE" => "§5",
       "BLUE" => "§9",
       "BROWN" => "§6",
-      "GREEN" => "§a",
+      "GREEN" => "§2",
       "RED" => "§c",
       "BLACK" => "§0"
     );
