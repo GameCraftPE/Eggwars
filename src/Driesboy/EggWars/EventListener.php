@@ -357,7 +357,7 @@ class EventListener implements Listener{
             if($e->getLine(2) != "Broken") {
               $e->setLine(0, "§6Gold");
               $e->setLine(1, "§eLevel 1");
-              $e->setLine(2, "§b8 seconds");
+              $e->setLine(2, "§b5 seconds");
               $e->setLine(3, "§a§lUpgrade");
             }else{
               $e->setLine(0, "§6Gold");
