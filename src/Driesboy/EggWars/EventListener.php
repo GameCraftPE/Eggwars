@@ -694,7 +694,6 @@ class EventListener implements Listener{
           }
           $e->setCancelled();
         }
-        $e->setCancelled();
         return;
       }
 
