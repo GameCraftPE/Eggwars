@@ -150,28 +150,42 @@ class EggWars extends PluginBase{
 
   public function Teams(){
     $Teams = array(
+      "WHITE" => "§f",
       "ORANGE" => "§6",
-      "PURPLE" => "§d",
       "LIGHT-BLUE" => "§b",
       "YELLOW" => "§e",
-      "GREEN" => "§a",
-      "GRAY" => "§7",
+      "LIME" => "§a",
+      "PINK" => "§d",
+      "GRAY" => "§8",
+      "LIGHT-GRAY" => "§7",
+      "CYAN" => "§3",
+      "PURPLE" => "§5",
       "BLUE" => "§9",
-      "RED" => "§c"
+      "BROWN" => "§6",
+      "GREEN" => "§a",
+      "RED" => "§c",
+      "BLACK" => "§0"
     );
     return $Teams;
   }
 
   public function TeamSearcher(){
     $tyc = array(
+      "WHITE" => 0,
       "ORANGE" => 1,
-      "PURPLE" => 10,
       "LIGHT-BLUE" => 3,
       "YELLOW" => 4,
-      "GREEN" => 13,
+      "LIME" => 5,
+      "PINK" => 6,
       "GRAY" => 7,
+      "LIGHT-GRAY" => 8,
+      "CYAN" => 9,
+      "PURPLE" => 10,
       "BLUE" => 11,
-      "RED" => 14
+      "BROWN" => 12,
+      "GREEN" => 13,
+      "RED" => 14,
+      "BLACK" => 15
     );
     return $tyc;
   }
