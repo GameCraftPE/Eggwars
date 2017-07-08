@@ -450,6 +450,7 @@ class EventListener implements Listener{
           if($e->getDamage() >= $e->getEntity()->getHealth()){
             $e->setCancelled();
             $o->setHealth(20);
+            $o->setFood(20);
             if($main->EggSkin($arena, $Team)){
               $main->RemoveArenaPlayer($arena, $o->getName());
             }else{

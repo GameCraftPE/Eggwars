@@ -74,6 +74,7 @@ class Game extends PluginTask{
                       $o->teleport(new Position($ac->getNested($Team . ".X"), $ac->getNested($Team . ".Y"), $ac->getNested($Team . ".Z"), $main->getServer()->getLevelByName($ac->get("World"))));
                       $o->getInventory()->clearAll();
                       $o->sendMessage("§1Go!");
+                      $o->setFood(20);
                     }
                   }
                   $ac->set("Status", "In-Game");
