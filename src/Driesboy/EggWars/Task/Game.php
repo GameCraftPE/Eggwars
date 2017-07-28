@@ -21,7 +21,7 @@ class Game extends PluginTask{
     parent::__construct($p);
   }
 
-  public function onRun($tick){
+  public function onRun(int $tick){
     $main = $this->p;
     $pl = $main->getServer()->getOnlinePlayers();
     foreach($pl as $p){

@@ -15,7 +15,7 @@ class Lobby extends Command{
     $this->setAliases(array("leave", "quit", "spawn"));
   }
 
-  public function execute(CommandSender $g, $label, array $args){
+  public function execute(CommandSender $g, string $label, array $args){
     $main = EggWars::getInstance();
     if($main->IsInArena($g->getName())){
       $arena = $main->IsInArena($g->getName());

@@ -24,7 +24,7 @@ class EW extends Command{
     parent::__construct("ew", "EggWars by Driesboy & Enes5519");
   }
 
-  public function execute(CommandSender $g, $label, array $args){
+  public function execute(CommandSender $g, string $label, array $args){
     $main = EggWars::getInstance();
     if($g->hasPermission("eggwars.command") && $g instanceof Player){
       if(!empty($args[0])){
