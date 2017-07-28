@@ -9,7 +9,6 @@ use Driesboy\Eggwars\EggWars;
 
 class StackTask extends PluginTask{
 
-//Thx to @XenialDan
 
 	/** @var Loader $plugin */
 	private $plugin;
@@ -19,7 +18,7 @@ class StackTask extends PluginTask{
 		$this->plugin = $owner;
 	}
 
-	public function onRun($currentTick) {
+	public function onRun(int $currentTick) {
 		foreach (Server::getInstance()->getLevels() as $level) {
 			foreach ($level->getEntities() as $entity) {
 				if (!$entity instanceof Item || $entity->closed) continue;
