@@ -31,8 +31,7 @@ use pocketmine\math\Vector3;
 use pocketmine\utils\Config;
 
 use pocketmine\network\mcpe\protocol\ContainerSetContentPacket;
-use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
-use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
+use pocketmine\network\mcpe\protocol\types\ContainerIds;
 
 class EventListener implements Listener{
 
@@ -44,7 +43,7 @@ class EventListener implements Listener{
     if ($e->getPlayer()->hasPermission("rank.diamond")){
       $e->getPlayer()->setGamemode("1");
       $pk = new ContainerSetContentPacket();
-      $pk->windowid = ContainerSetContentPacket::SPECIAL_CREATIVE;
+      $pk->windowid = ContainerIds::CREATIVE;
       $pk->targetEid = $e->getPlayer()->getId();
       $e->getPlayer()->dataPacket($pk);
     }
