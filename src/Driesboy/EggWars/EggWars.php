@@ -2,8 +2,8 @@
 
 namespace Driesboy\EggWars;
 
-use Driesboy\EggWars\Command\Lobby;
-use Driesboy\EggWars\Command\EW;
+use Driesboy\EggWars\Commands\HubCommand;
+use Driesboy\EggWars\Commands\EggWarsCommand;
 use Driesboy\EggWars\Task\Game;
 use Driesboy\EggWars\Task\SignManager;
 use Driesboy\EggWars\Task\StackTask;
@@ -72,64 +72,64 @@ class EggWars extends PluginBase{
 
   public function ArenaPlayer($arena){
     $ac = new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-    $Players = $ac->get("Players");
-    $o = array();
-    foreach ($Players as $Is) {
-      $go = Server::getInstance()->getPlayer($Is);
+    $players = $ac->get("Players");
+    $p = array();
+    foreach ($players as $player) {
+      $go = Server::getInstance()->getPlayer($player);
       if($go instanceof Player){
-        $o[] = $Is;
+        $p[] = $player;
       }else{
-        $this->RemoveArenaPlayer($arena, $Is, 1);
+        $this->RemoveArenaPlayer($arena, $player, 1);
       }
     }
-    return $o;
+    return $p;
   }
 
-  public function RemoveArenaPlayer($arena, $isim, $oa = 0){
+  public function RemoveArenaPlayer($arena, $player, $oa = 0){
     $ac = new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-    $Players = $ac->get("Players");
-    $Status = $ac->get("Status");
-    if($Status === "Lobby"){
-      $this->ArenaMessage($arena, "§6$isim left the game ". count($this->ArenaPlayer($arena)) . "/" .$ac->get("Team") * $ac->get("PlayersPerTeam"));
+    $players = $ac->get("Players");
+    $status = $ac->get("Status");
+    if($status === "Lobby"){
+      $this->ArenaMessage($arena, "§6$player left the game ". count($this->ArenaPlayer($arena)) . "/" .$ac->get("Team") * $ac->get("PlayersPerTeam"));
     }
-    if(@in_array($isim, $Players)){
-      $o = Server::getInstance()->getPlayer($isim);
-      if($o instanceof Player && $oa != 1){
-        $o->setNameTag($this->getServer()->getPluginManager()->getPlugin("PureChat")->getNametag($o));
-        $o->getInventory()->clearAll();
-        $o->setHealth(20);
-        $o->setFood(20);
-        $o->teleport(Server::getInstance()->getDefaultLevel()->getSafeSpawn());
-        if ($o->hasPermission("rank.diamond")){
-          $o->setGamemode("1");
+    if(@in_array($player, $players)){
+      $p = Server::getInstance()->getPlayer($player);
+      if($p instanceof Player && $oa != 1){
+        $p->setNameTag($this->getServer()->getPluginManager()->getPlugin("PureChat")->getNametag($p));
+        $p->getInventory()->clearAll();
+        $p->setHealth(20);
+        $p->setFood(20);
+        $p->teleport(Server::getInstance()->getDefaultLevel()->getSafeSpawn());
+        if ($p->hasPermission("rank.diamond")){
+          $p->setGamemode("1");
           $pk = new ContainerSetContentPacket();
-          $pk->targetEid = $o->getId();
+          $pk->targetEid = $p->getId();
           $pk->windowid = ContainerSetContentPacket::SPECIAL_CREATIVE;
-          $o->dataPacket($pk);
+          $p->dataPacket($pk);
         }
       }
-      $key = array_search($isim, $Players);
-      unset($Players[$key]);
-      $ac->set("Players", $Players);
+      $key = array_search($player, $players);
+      unset($players[$key]);
+      $ac->set("Players", $players);
       $ac->save();
     }
   }
 
-  public function AddArenaPlayer($arena, $isim){
+  public function AddArenaPlayer($arena, $player){
     $ac = new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-    $Players = $ac->get("Players");
-    if(!in_array($isim, $Players)){
-      $o = Server::getInstance()->getPlayer($isim);
-      if($o instanceof Player){
-        $o->setNameTag($o->getName());
-        $o->setGamemode(0);
-        $o->getInventory()->clearAll();
-        $o->setHealth(20);
-        $o->setFood(20);
-        $o->removeAllEffects();
+    $players = $ac->get("Players");
+    if(!in_array($player, $players)){
+      $p = Server::getInstance()->getPlayer($player);
+      if($p instanceof Player){
+        $p->setNameTag($p->getName());
+        $p->setGamemode(0);
+        $p->getInventory()->clearAll();
+        $p->setHealth(20);
+        $p->setFood(20);
+        $p->removeAllEffects();
       }
-      $Players[] = $isim;
-      $ac->set("Players", $Players);
+      $players[] = $player;
+      $ac->set("Players", $players);
       $ac->save();
     }
   }
@@ -149,7 +149,7 @@ class EggWars extends PluginBase{
   }
 
   public function Teams(){
-    $Teams = array(
+    $teams = array(
       "WHITE" => "§f",
       "ORANGE" => "§6",
       "LIGHT-BLUE" => "§b",
@@ -166,7 +166,7 @@ class EggWars extends PluginBase{
       "RED" => "§c",
       "BLACK" => "§0"
     );
-    return $Teams;
+    return $teams;
   }
 
   public function TeamSearcher(){
@@ -212,13 +212,13 @@ class EggWars extends PluginBase{
     }
   }
 
-  public function IsInArena($isim){
+  public function IsInArena($player){
     $Arenas = $this->Arenas();
     $a = null;
     foreach ($Arenas as $arena){
       $ac = new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-      $Players = $ac->get("Players");
-      if(in_array($isim, $Players)){
+      $players = $ac->get("Players");
+      if(in_array($player, $players)){
         $a = $arena;
         break;
       }
@@ -232,80 +232,80 @@ class EggWars extends PluginBase{
 
   public function ArenaStatus($arena){
     $ac = new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-    $Status = $ac->get("Status");
-    return $Status;
+    $status = $ac->get("Status");
+    return $status;
   }
 
-  public function ArenaCreate($arena, $Team, $tbo, Player $o){
+  public function ArenaCreate($arena, $team, $tbo, Player $p){
     if(!$this->ArenaControl($arena)){
-      if($Team <= 8) {
+      if($team <= 8) {
         if($tbo <= 8) {
           $ac = new Config($this->getDataFolder() . "Arenas/$arena.yml", Config::YAML);
           $cfg = new Config($this->getDataFolder() . "config.yml", Config::YAML);
           $ac->set("Status", "Lobby");
           $ac->set("StartTime", $cfg->get("StartTime"));
           $ac->set("EndTime", $cfg->get("EndTime"));
-          $ac->set("Team", (int) $Team);
+          $ac->set("Team", (int) $team);
           $ac->set("PlayersPerTeam", (int) $tbo);
           $ac->set("Players", array());
           $ac->save();
-          $o->sendMessage($this->sb."§a$arena was successfully built!");
+          $p->sendMessage($this->sb."§a$arena was successfully built!");
         }else{
-          $o->sendMessage("§8» §cThe number of players per team should be 8 or less.");
+          $p->sendMessage("§8» §cThe number of players per team should be 8 or less.");
         }
       }else{
-        $o->sendMessage("§8» §cTeam number should be 8 or less.");
+        $p->sendMessage("§8» §cTeam number should be 8 or less.");
       }
     }else{
-      $o->sendMessage("§8» §c$arena already exists!");
+      $p->sendMessage("§8» §c$arena already exists!");
     }
   }
 
   public function ArenaTeams($arena){
     if($this->ArenaControl($arena)){
       $ac = new Config($this->getDataFolder() . "Arenas/$arena.yml", Config::YAML);
-      $Teams = array();
-      foreach ($this->Teams() as $Team => $color){
-        if(!empty($ac->getNested($Team.".X"))){
-          $Teams[] = $Team;
+      $teams = array();
+      foreach ($this->Teams() as $team => $color){
+        if(!empty($ac->getNested($team.".X"))){
+          $teams[] = $team;
         }
       }
-      return $Teams;
+      return $teams;
     }else{
       return false;
     }
   }
 
-  public function ArenaSet($arena, $Team, Player $o){
+  public function ArenaSet($arena, $team, Player $p){
     if($this->ArenaControl($arena)){
       $ac = new Config($this->getDataFolder() . "Arenas/$arena.yml", Config::YAML);
-      if(!empty($this->Teams()[$Team])){
+      if(!empty($this->Teams()[$team])){
         if(count($this->ArenaTeams($arena)) === $ac->get("Team")){
-          if($ac->getNested("$Team.X")){
-            $ac->setNested("$Team.X", $o->getFloorX());
-            $ac->setNested("$Team.Y", $o->getFloorY());
-            $ac->setNested("$Team.Z", $o->getFloorZ());
+          if($ac->getNested("$team.X")){
+            $ac->setNested("$team.X", $p->getFloorX());
+            $ac->setNested("$team.Y", $p->getFloorY());
+            $ac->setNested("$team.Z", $p->getFloorZ());
             $ac->save();
-            $o->sendMessage("§8» §a$Team has been successfully updated!");
+            $p->sendMessage("§8» §a$team has been successfully updated!");
           }else{
-            $o->sendMessage("§8» §cAll the teams are settled, you can only change the teams!");
+            $p->sendMessage("§8» §cAll the teams are settled, you can only change the teams!");
           }
         }else{
-          $ac->setNested("$Team.X", (int) $o->getFloorX());
-          $ac->setNested("$Team.Y", (int) $o->getFloorY());
-          $ac->setNested("$Team.Z", (int) $o->getFloorZ());
+          $ac->setNested("$team.X", (int) $p->getFloorX());
+          $ac->setNested("$team.Y", (int) $p->getFloorY());
+          $ac->setNested("$team.Z", (int) $p->getFloorZ());
           $ac->save();
-          $o->sendMessage($this->Teams()[$Team]."$Team 's spawn successfully placed!");
+          $p->sendMessage($this->Teams()[$team]."$team 's spawn successfully placed!");
         }
       }else{
-        $Team = null;
-        foreach ($this->Teams() as $Team => $color){
-          $Team .= $color.$Team." ";
+        $team = null;
+        foreach ($this->Teams() as $team => $color){
+          $team .= $color.$team." ";
         }
-        $o->sendMessage("§8» §fTeams you can use: \n$Team");
+        $p->sendMessage("§8» §fTeams you can use: \n$team");
       }
     }else{
-      $o->sendMessage("§8» §cThere is no such arena.");
+      $p->sendMessage("§8» §cThere is no such arena.");
     }
   }
 
@@ -335,10 +335,10 @@ class EggWars extends PluginBase{
     Server::getInstance()->loadLevel($World);
   }
 
-  public function ItemId(Player $o, $id){
+  public function ItemId(Player $p, $id){
     $items = 0;
     for($i=0; $i<36; $i++){
-      $item = $o->getInventory()->getItem($i);
+      $item = $p->getInventory()->getItem($i);
       if($item->getId() === $id){
         $items += $item->getCount();
       }
@@ -347,33 +347,33 @@ class EggWars extends PluginBase{
   }
 
   public function Status($arena){
-    $Status = array();
+    $status = array();
     $plus = "§8[§a+§8]";
     $minus = "§8[§c-§8]";
     foreach($this->ArenaTeams($arena) as $at){
       if(!@in_array($at, $this->ky[$arena])){
-        $Status[] = $this->Teams()[$at].$at.$plus." ";
+        $status[] = $this->Teams()[$at].$at.$plus." ";
       }else{
-        $Status[] = $this->Teams()[$at].$at." ".$minus." ";
+        $status[] = $this->Teams()[$at].$at." ".$minus." ";
       }
     }
-    return $Status;
+    return $status;
   }
 
   public function ArenaMessage($arena, $message){
-    $Players = $this->ArenaPlayer($arena);
-    foreach($Players as $Is){
-      $o = $this->getServer()->getPlayer($Is);
-      if($o instanceof Player){
-        $o->sendMessage($message);
+    $players = $this->ArenaPlayer($arena);
+    foreach($players as $player){
+      $p = $this->getServer()->getPlayer($player);
+      if($p instanceof Player){
+        $p->sendMessage($message);
       }
     }
   }
 
-  public function PlayerTeamColor(Player $o){
-    $TeamColor = substr($o->getNameTag(), 0, 3);
-    if(strstr($TeamColor, "§")){
-      $Key = array_search($TeamColor, $this->Teams());
+  public function PlayerTeamColor(Player $p){
+    $teamColor = substr($p->getNameTag(), 0, 3);
+    if(strstr($teamColor, "§")){
+      $Key = array_search($teamColor, $this->Teams());
       return $Key;
     }else{
       return false;
@@ -381,24 +381,24 @@ class EggWars extends PluginBase{
   }
 
   public function AvailableTeams($arena){
-    $Players = $this->ArenaPlayer($arena);
-    $TeamNumber = 0;
+    $players = $this->ArenaPlayer($arena);
+    $teamNumber = 0;
     $cfg = new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML);
     $musaitTeam = array();
-    foreach($this->ArenaTeams($arena) as $Team){
-      foreach($Players as $Is){
-        $o = $this->getServer()->getPlayer($Is);
-        if($o instanceof Player){
-          if($this->PlayerTeamColor($o) === $Team){
-            $TeamNumber++;
+    foreach($this->ArenaTeams($arena) as $team){
+      foreach($players as $player){
+        $p = $this->getServer()->getPlayer($player);
+        if($p instanceof Player){
+          if($this->PlayerTeamColor($p) === $team){
+            $teamNumber++;
           }
         }
       }
 
-      if($TeamNumber < $cfg->get("PlayersPerTeam")){
-        $musaitTeam[] = $Team;
+      if($teamNumber < $cfg->get("PlayersPerTeam")){
+        $musaitTeam[] = $team;
       }
-      $TeamNumber = 0;
+      $teamNumber = 0;
     }
 
     return $musaitTeam;
@@ -410,22 +410,23 @@ class EggWars extends PluginBase{
     return $this->Teams()[$mt[$mixed]];
   }
 
-  public function TeamSellector($arena, Player $o){
+  public function TeamSellector($arena, Player $p){
     foreach($this->ArenaTeams($arena) as $at){
       $meta = $this->TeamSearcher()[$at];
       $color = $this->Teams()[$at];
       $item = Item::get(35);
       $item->setDamage($meta);
       $item->setCustomName("§r§8» ".$color.$at."§8 «");
-      $o->getInventory()->addItem($item);
+      $p->getInventory()->addItem($item);
     }
+    $p->getInventory()->sendContents($p);
   }
 
-  public function EggSkin($arena, $Team){
+  public function EggSkin($arena, $team){
     if(empty($this->ky[$arena])){
       return false;
     }else{
-      if(@in_array($Team, $this->ky[$arena])){
+      if(@in_array($team, $this->ky[$arena])){
         return true;
       }else{
         return false;
@@ -450,36 +451,36 @@ class EggWars extends PluginBase{
   }
 
   public function OneTeamRemained($arena){
-    $Players = $this->ArenaPlayer($arena);
-    $Teams = array();
-    foreach ($Players as $ol){
-      $o = Server::getInstance()->getPlayer($ol);
-      if($o instanceof Player){
-        $Team = $this->PlayerTeamColor($o);
-        if(!in_array($Team, $Teams)){
-          $Teams[] = $Team;
+    $players = $this->ArenaPlayer($arena);
+    $teams = array();
+    foreach ($players as $pl){
+      $p = Server::getInstance()->getPlayer($pl);
+      if($p instanceof Player){
+        $team = $this->PlayerTeamColor($p);
+        if(!in_array($team, $teams)){
+          $teams[] = $team;
         }
       }
     }
-    if(count($Teams) === 1){
+    if(count($teams) === 1){
       return true;
     }else{
       return false;
     }
   }
 
-  public function EmptyShop(Player $o){
-    $o->getLevel()->setBlock(new Vector3($o->getFloorX(), $o->getFloorY() - 4, $o->getFloorZ()), Block::get(Block::CHEST));
+  public function EmptyShop(Player $p){
+    $p->getLevel()->setBlock(new Vector3($p->getFloorX(), $p->getFloorY() - 4, $p->getFloorZ()), Block::get(Block::CHEST));
     $nbt = new CompoundTag("", [
       new ListTag("Items", []),
       new StringTag("id", Tile::CHEST),
-      new IntTag("x", $o->getFloorX()),
-      new IntTag("y", $o->getFloorY() - 4),
-      new IntTag("z", $o->getFloorZ()),
+      new IntTag("x", $p->getFloorX()),
+      new IntTag("y", $p->getFloorY() - 4),
+      new IntTag("z", $p->getFloorZ()),
       new StringTag("CustomName", "§6EggWars Shop")
     ]);
     $nbt->Items->setTagType(NBT::TAG_Compound);
-    $tile = Tile::createTile("Chest", $o->getLevel(), $nbt);
+    $tile = Tile::createTile("Chest", $p->getLevel(), $nbt);
     if($tile instanceof Chest) {
       $config = new Config($this->getDataFolder() . "shop.yml", Config::YAML);
       $shop = $config->get("shop");
@@ -490,7 +491,7 @@ class EggWars extends PluginBase{
         $tile->getInventory()->setItem($slot, Item::get($shop[$i], 0, 1));
       }
       $tile->getInventory()->setItem($tile->getInventory()->getSize()-1, Item::get(Item::WOOL, 14, 1));
-      $o->addWindow($tile->getInventory());
+      $p->addWindow($tile->getInventory());
     }
   }
   public function lightning($x, $y, $z, $level){

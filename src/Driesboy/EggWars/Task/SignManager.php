@@ -26,24 +26,24 @@ class SignManager extends PluginTask{
         if($y[0] === $main->tyazi){
           $arena = str_ireplace("§e", "", $y[2]);
           $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-          $Status = $ac->get("Status");
-          $Players = count($main->ArenaPlayer($arena));
+          $status = $ac->get("Status");
+          $players = count($main->ArenaPlayer($arena));
           $fullPlayer = $ac->get("Team") * $ac->get("PlayersPerTeam");
           $d = null;
           $re = null;
           $b=$t->getBlock();
-          if($Status === "Lobby"){
-            if($Players >= $fullPlayer){
+          if($status === "Lobby"){
+            if($players >= $fullPlayer){
               $d = "§c§lFull";
               $re = 14;
             }else{
               $d = "§a§lTap to join";
               $re = 5;
             }
-          }elseif ($Status === "In-Game"){
+          }elseif ($status === "In-Game"){
             $d = "§d§lIn-Game";
             $re = 1;
-          }elseif($Status === "Done"){
+          }elseif($status === "Done"){
             $d = "§9§lRestarting";
             $re = 4;
           }
@@ -51,7 +51,7 @@ class SignManager extends PluginTask{
           $ba = $b->getSide(Vector3::SIDE_NORTH, 1);
           $ca = $b->getSide(Vector3::SIDE_EAST, 1);
           $ac = $b->getSide(Vector3::SIDE_WEST, 1);
-          $t->setText($y[0], "§f$Players/$fullPlayer", $y[2], $d);
+          $t->setText($y[0], "§f$players/$fullPlayer", $y[2], $d);
           if($ac->getId() === 35){
             $ac->setDamage($re);
             $b->getLevel()->setBlock($ac, $ac);
