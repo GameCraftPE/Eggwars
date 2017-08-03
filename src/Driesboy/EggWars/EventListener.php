@@ -284,6 +284,13 @@ class EventListener implements Listener{
     }
   }
 
+  public function InventoryPickupItemEvent(InventoryPickupItemEvent $event){
+    $main = EggWars::getInstance();
+    if($main->IsInArena($event->getPlayer()->getName())){
+      $event->getPlayer()->getInventory()->sendContents($event->getPlayer());
+    }
+  }
+
   public function DestroyEgg(PlayerInteractEvent $e){
     $p = $e->getPlayer();
     $b = $e->getBlock();
