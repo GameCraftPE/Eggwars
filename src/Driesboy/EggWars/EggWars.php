@@ -266,7 +266,7 @@ class EggWars extends PluginBase{
       $ac = new Config($this->getDataFolder() . "Arenas/$arena.yml", Config::YAML);
       $teams = array();
       foreach ($this->Teams() as $team => $color){
-        if(!empty($ac->getNested($team.".X"))){
+        if(!empty($ac->getNested($team.".Y"))){
           $teams[] = $team;
         }
       }
