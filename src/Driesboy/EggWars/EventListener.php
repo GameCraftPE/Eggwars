@@ -82,7 +82,7 @@ class EventListener implements Listener{
         foreach($players as $p){
           $to = $main->getServer()->getPlayer($p);
           if($to instanceof Player){
-            $chatFormat = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($o, $m);
+            $chatFormat = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($to, $m);
             $to->sendMessage($chatFormat);
             $e->setCancelled();
           }
