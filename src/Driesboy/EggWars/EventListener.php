@@ -97,7 +97,7 @@ class EventListener implements Listener{
             $to = $main->getServer()->getPlayer($p);
             if($to instanceof Player){
               $msil = substr($m, 1);
-              $chatFormat = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($p, $msil);
+              $chatFormat = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($to, $msil);
               $to->sendMessage($chatFormat);
               $e->setCancelled();
             }
@@ -108,7 +108,7 @@ class EventListener implements Listener{
             if($to instanceof Player){
               $toTeam = $main->PlayerTeamColor($to);
               if($team === $toTeam){
-                $format = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($p, $m);
+                $format = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($to, $m);
                 $message = "§8[".$color."team§8] ". $format;
                 $to->sendMessage($message);
                 $e->setCancelled();

@@ -103,8 +103,8 @@ class EggWars extends PluginBase{
         if ($p->hasPermission("rank.diamond")){
           $p->setGamemode("1");
           $pk = new ContainerSetContentPacket();
+          $pk->windowid = ContainerIds::CREATIVE;
           $pk->targetEid = $p->getId();
-          $pk->windowid = ContainerSetContentPacket::SPECIAL_CREATIVE;
           $p->dataPacket($pk);
         }
       }
