@@ -58,8 +58,8 @@ class EggWars extends PluginBase{
     Server::getInstance()->getScheduler()->scheduleRepeatingTask(new SignManager($this), 20);
     Server::getInstance()->getScheduler()->scheduleRepeatingTask(new Game($this), 20);
     Server::getInstance()->getScheduler()->scheduleDelayedRepeatingTask(new StackTask($this), 15, 15);
-    Server::getInstance()->getCommandMap()->register("ew", new EW());
-    Server::getInstance()->getCommandMap()->register("lobby", new Lobby());
+    Server::getInstance()->getCommandMap()->register("ew", new EggwarsCommand());
+    Server::getInstance()->getCommandMap()->register("lobby", new HubCommand());
   }
 
   public function PrepareArenas(){

@@ -70,18 +70,11 @@ class Game extends PluginTask{
                         $team = $main->AvailableRastTeam($arena);
                         $p->setNameTag($team . $p->getName());
                       }
-<<<<<<< HEAD
                       $Team = $main->PlayerTeamColor($o);
                       $o->teleport(new Position($ac->getNested($Team . ".X"), $ac->getNested($Team . ".Y"), $ac->getNested($Team . ".Z"), $main->getServer()->getLevelByName($ac->get("World"))));
                       $o->getInventory()->clearAll();
                       $o->sendMessage("§1Go!");
                       $o->setFood(20);
-=======
-                      $team = $main->PlayerTeamColor($p);
-                      $p->teleport(new Position($ac->getNested($team . ".X"), $ac->getNested($team . ".Y"), $ac->getNested($team . ".Z"), $main->getServer()->getLevelByName($ac->get("World"))));
-                      $p->getInventory()->clearAll();
-                      $p->sendMessage("§1Go!");
->>>>>>> NL-4-DEVS/master
                     }
                   }
                   $ac->set("Status", "In-Game");
