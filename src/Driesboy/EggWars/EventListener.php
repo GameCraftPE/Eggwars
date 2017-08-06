@@ -107,7 +107,7 @@ class EventListener implements Listener{
             $to = $main->getServer()->getPlayer($p);
             if($to instanceof Player){
               $toTeam = $main->PlayerTeamColor($to);
-              if($Team === $toTeam){
+              if($team === $toTeam){
                 $format = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($p, $m);
                 $message = "§8[".$color."team§8] ". $format;
                 $to->sendMessage($message);
@@ -301,8 +301,8 @@ class EventListener implements Listener{
             $b->getLevel()->setBlock(new Vector3($b->x, $b->y, $b->z), Block::get(0));
             $main->lightning($b->x, $b->y, $b->z, $p->getLevel());
             $arena = $main->IsInArena($p->getName());
-            $main->ky[$arena][] = $Team;
-            $main->ArenaMessage($main->IsInArena($p->getName()), "§eTeam " .$main->Teams()[$Team]."$Team's".$main->Teams()[$oht]." §eegg has been destroyed by " .$p->getNameTag());
+            $main->ky[$arena][] = $team;
+            $main->ArenaMessage($main->IsInArena($p->getName()), "§eTeam " .$main->Teams()[$team]."$team's".$main->Teams()[$oht]." §eegg has been destroyed by " .$p->getNameTag());
           }
         }
       }
