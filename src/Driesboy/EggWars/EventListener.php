@@ -29,7 +29,6 @@ use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\math\Vector3;
 use pocketmine\utils\Config;
-use pocketmine\event\inventory\InventoryPickupItemEvent;
 
 use pocketmine\network\mcpe\protocol\ContainerSetContentPacket;
 use pocketmine\network\mcpe\protocol\types\ContainerIds;
@@ -281,13 +280,6 @@ class EventListener implements Listener{
           break;
         }
       }
-    }
-  }
-
-  public function InventoryPickupItemEvent(InventoryPickupItemEvent $event){
-    $main = EggWars::getInstance();
-    if($main->IsInArena($event->getPlayer()->getName())){
-      $event->getPlayer()->getInventory()->sendContents($event->getPlayer());
     }
   }
 
