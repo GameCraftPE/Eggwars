@@ -509,7 +509,7 @@ class EventListener implements Listener{
 
   public function onMove(PlayerMoveEvent $e){
     $p = $e->getPlayer();
-    if($p->hasPermission("rank.diamond")){
+    if($p->hasPermission("rank.lapis")){
       $pos = $e->getFrom();
       $red = new DustParticle($pos->add(0, 2.5), 252, 17, 17);
       $orange = new DustParticle($pos->add(0, 2.1), 252, 135, 17);
