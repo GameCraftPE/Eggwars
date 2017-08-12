@@ -32,6 +32,7 @@ use pocketmine\utils\Config;
 
 use pocketmine\network\mcpe\protocol\ContainerSetContentPacket;
 use pocketmine\network\mcpe\protocol\types\ContainerIds;
+use pocketmine\level\particle\DustParticle;
 
 class EventListener implements Listener{
 
@@ -82,7 +83,7 @@ class EventListener implements Listener{
         foreach($players as $p){
           $to = $main->getServer()->getPlayer($p);
           if($to instanceof Player){
-            $chatFormat = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($to, $m);
+            $chatFormat = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($e->getPlayer(), $m);
             $to->sendMessage($chatFormat);
             $e->setCancelled();
           }
@@ -97,7 +98,7 @@ class EventListener implements Listener{
             $to = $main->getServer()->getPlayer($p);
             if($to instanceof Player){
               $msil = substr($m, 1);
-              $chatFormat = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($to, $msil);
+              $chatFormat = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($e->getPlayer(), $msil);
               $to->sendMessage($chatFormat);
               $e->setCancelled();
             }
@@ -108,7 +109,7 @@ class EventListener implements Listener{
             if($to instanceof Player){
               $toTeam = $main->PlayerTeamColor($to);
               if($team === $toTeam){
-                $format = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($to, $m);
+                $format = $main->getServer()->getPluginManager()->getPlugin("PureChat")->getChatFormat($e->getPlayer(), $m);
                 $message = "§8[".$color."team§8] ". $format;
                 $to->sendMessage($message);
                 $e->setCancelled();
@@ -508,6 +509,18 @@ class EventListener implements Listener{
 
   public function onMove(PlayerMoveEvent $e){
     $p = $e->getPlayer();
+    if($p->hasPermission("rank.diamond")){
+      $pos = $e->getFrom();
+      $red = new DustParticle($pos->add(0, 2.5), 252, 17, 17);
+      $orange = new DustParticle($pos->add(0, 2.1), 252, 135, 17);
+      $yellow = new DustParticle($pos->add(0, 1.7), 252, 252, 17);
+      $green = new DustParticle($pos->add(0, 1.3), 17, 252, 17);
+      $lblue = new DustParticle($pos->add(0, 0.9), 94, 94, 252);
+      $dblue = new DustParticle($pos->add(0, 0.5), 17, 17, 252);
+      foreach ([$red, $orange, $yellow, $green, $lblue, $dblue] as $particle) {
+        $pos->getLevel()->addParticle($particle);
+      }
+    }
     $main = EggWars::getInstance();
     if ($p->getLevel()->getFolderName() === "ELobby"){
       if($e->getTo()->getFloorY() < 3){
