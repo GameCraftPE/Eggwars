@@ -26,7 +26,7 @@ class SignManager extends PluginTask{
         if($y[0] === $main->tyazi){
           $arena = str_ireplace("§e", "", $y[2]);
           $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-          $status = $ac->get("Status");
+          $status = $main->status[$arena];
           $players = count($main->ArenaPlayer($arena));
           $fullPlayer = $ac->get("Team") * $ac->get("PlayersPerTeam");
           $d = null;

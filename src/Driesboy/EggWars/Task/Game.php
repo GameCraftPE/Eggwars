@@ -25,14 +25,13 @@ class Game extends PluginTask{
     foreach($main->Arenas() as $arena){
       if($main->ArenaReady($arena)){
         $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-        $status = $ac->get("Status");
+        $status = $main->status[$arena];
         if($status === "Lobby"){
-          $time = (int) $ac->get("StartTime");
+          $time = (int) $main->StartTime[$arena];
           if($time > 0 || $time <= 0){
             if(count($main->ArenaPlayer($arena)) >= $ac->get("Team")){
               $time--;
-              $ac->set("StartTime", $time);
-              $ac->save();
+              $main->StartTime[$arena] = $time;
               switch ($time){
                 case 120:
                 $main->ArenaMessage($arena, "§9EggWars starting in 2 minutes");
@@ -69,8 +68,7 @@ class Game extends PluginTask{
                       $p->sendMessage("§1Go!");
                     }
                   }
-                  $ac->set("Status", "In-Game");
-                  $ac->save();
+                  $main->status[$arena] = "In-Game";
                 }
                 break;
               }
@@ -79,6 +77,7 @@ class Game extends PluginTask{
                 $p = $main->getServer()->getPlayer($p);
                 if($p instanceof Player){
                   $p->setXpLevel($time);
+                  $p->getInventory()->sendContents($p);
                 }
               }
             }
@@ -119,8 +118,7 @@ class Game extends PluginTask{
             $p->sendPopup($i);
           }
           if($main->OneTeamRemained($arena)){
-            $ac->set("Status", "Done");
-            $ac->save();
+            $main->status[$arena] = "Done";
             $main->ArenaMessage($arena, "§aCongratulations, you win!");
             foreach ($main->ArenaPlayer($arena) as $Is) {
               $p = Server::getInstance()->getPlayer($Is);
@@ -132,11 +130,10 @@ class Game extends PluginTask{
             Server::getInstance()->broadcastMessage("$team §9won the game on §b$arena!");
           }
         }elseif($status === "Done"){
-          $bitis = (int) $ac->get("EndTime");
+          $bitis = (int) $main->EndTime[$arena];
           if($bitis > 0 || $bitis <= 0){
             $bitis--;
-            $ac->set("EndTime", $bitis);
-            $ac->save();
+            $main->StartTime[$arena] = $bitis;
             foreach($main->ArenaPlayer($arena) as $players){
               $p = Server::getInstance()->getPlayer($players);
               if($bitis <= 1){
@@ -149,8 +146,7 @@ class Game extends PluginTask{
             }
           }
         }else{
-          $ac->set("Status", "Done");
-          $ac->save();
+          $main->status[$arena] = "Done";
         }
       }
     }

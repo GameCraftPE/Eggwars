@@ -59,7 +59,7 @@ class EventListener implements Listener{
       $team = $main->PlayerTeamColor($p);
       $arena = $main->IsInArena($p->getName());
       $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-      if($ac->get("Status") === "Lobby"){
+      if($main->status[$arena] === "Lobby"){
         $players = $main->ArenaPlayer($arena);
         foreach($players as $Is){
           $to = $main->getServer()->getPlayer($Is);
@@ -248,7 +248,7 @@ class EventListener implements Listener{
             $b->getLevel()->setBlock(new Vector3($b->x, $b->y, $b->z), Block::get(0));
             $main->CreateLightning($b->x, $b->y, $b->z, $p->getLevel());
             $arena = $main->IsInArena($p->getName());
-            $main->ky[$arena][] = $team;
+            $main->egg[$arena][] = $team;
             $main->ArenaMessage($main->IsInArena($p->getName()), "§eTeam " .$main->Teams()[$team]."$team's".$main->Teams()[$pht]." §eegg has been destroyed by " .$p->getNameTag());
           }
         }
@@ -379,7 +379,7 @@ class EventListener implements Listener{
           $arena = $main->IsInArena($p->getName());
           $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
           $team = $main->PlayerTeamColor($p);
-          if($ac->get("Status") === "Lobby"){
+          if($main->status[$arena] === "Lobby"){
             $e->setCancelled();
           }else{
             $td = substr($d->getNameTag(), 0, 3);
@@ -412,7 +412,7 @@ class EventListener implements Listener{
         if($main->IsInArena($p->getName())){
           $arena = $main->IsInArena($p->getName());
           $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-          if($ac->get("Status") === "Lobby"){
+          if($main->status[$arena] === "Lobby"){
             $e->setCancelled();
           }
           $team = $main->PlayerTeamColor($p);

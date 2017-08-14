@@ -26,11 +26,24 @@ use pocketmine\network\mcpe\protocol\AddEntityPacket;
 
 class EggWars extends PluginBase{
 
+  public $players = array();
+
+  public $status = array();
+
+  public $StartTime = array();
+
+  public $EndTime = array();
+
   private static $ins;
-  public $ky = array();
+
+  public $egg = array();
+
   public $sb = '§6EggWars> ';
+
   public $tyazi = '§8§l» §r§6Egg §fWars §l§8«';
+
   public $m = array();
+
   public $mo = array();
 
   public function onEnable(){
@@ -65,59 +78,37 @@ class EggWars extends PluginBase{
   }
 
   public function ArenaPlayer($arena){
-    $ac = new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-    $players = $ac->get("Players");
-    $p = array();
-    foreach ($players as $player) {
-      $go = Server::getInstance()->getPlayer($player);
-      if($go instanceof Player){
-        $p[] = $player;
-      }else{
-        $this->RemoveArenaPlayer($arena, $player, 1);
-      }
-    }
-    return $p;
+    return $this->players[$arena];
   }
 
-  public function RemoveArenaPlayer($arena, $player, $oa = 0){
+  public function resetPlayer(Player $player){
+    $player->setNameTag($player->getName());
+    $player->getInventory()->clearAll();
+    $player->setHealth(20);
+    $player->setFood(20);
+    $player->removeAllEffects();
+  }
+
+  public function RemoveArenaPlayer($arena, $player){
     $ac = new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-    $players = $ac->get("Players");
-    $status = $ac->get("Status");
+    $status = $this->status[$arena];
     if($status === "Lobby"){
       $this->ArenaMessage($arena, "§6$player left the game ". count($this->ArenaPlayer($arena)) . "/" .$ac->get("Team") * $ac->get("PlayersPerTeam"));
     }
+    $players = $this->players[$arena];
     if(@in_array($player, $players)){
-      $p = Server::getInstance()->getPlayer($player);
-      if($p instanceof Player && $oa != 1){
-        $p->setNameTag($p->getName());
-        $p->getInventory()->clearAll();
-        $p->setHealth(20);
-        $p->setFood(20);
-        $p->teleport(Server::getInstance()->getDefaultLevel()->getSafeSpawn());
-      }
-      $key = array_search($player, $players);
-      unset($players[$key]);
-      $ac->set("Players", $players);
-      $ac->save();
+      $this->resetPlayer($player);
+      $player->setGamemode($this->getServer()->getDefaultGamemode());
+      $player->teleport(Server::getInstance()->getDefaultLevel()->getSafeSpawn());
+      unset($players[array_search($player, $players)]);
     }
   }
 
   public function AddArenaPlayer($arena, $player){
-    $ac = new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-    $players = $ac->get("Players");
-    if(!in_array($player, $players)){
-      $p = Server::getInstance()->getPlayer($player);
-      if($p instanceof Player){
-        $p->setNameTag($p->getName());
-        $p->setGamemode(0);
-        $p->getInventory()->clearAll();
-        $p->setHealth(20);
-        $p->setFood(20);
-        $p->removeAllEffects();
-      }
-      $players[] = $player;
-      $ac->set("Players", $players);
-      $ac->save();
+    $players = $this->players[$arena];
+    if(!$this->IsInArena($player)){
+      $this->resetPlayer($player);
+      array_push($players, $player);
     }
   }
 
@@ -203,8 +194,7 @@ class EggWars extends PluginBase{
     $Arenas = $this->Arenas();
     $a = null;
     foreach ($Arenas as $arena){
-      $ac = new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-      $players = $ac->get("Players");
+      $players = $this->players[$arena];
       if(in_array($player, $players)){
         $a = $arena;
         break;
@@ -218,9 +208,7 @@ class EggWars extends PluginBase{
   }
 
   public function ArenaStatus($arena){
-    $ac = new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-    $status = $ac->get("Status");
-    return $status;
+    return $this->status[$arena];
   }
 
   public function ArenaCreate($arena, $team, $tbo, Player $p){
@@ -229,13 +217,13 @@ class EggWars extends PluginBase{
         if($tbo <= 8) {
           $ac = new Config($this->getDataFolder() . "Arenas/$arena.yml", Config::YAML);
           $cfg = new Config($this->getDataFolder() . "config.yml", Config::YAML);
-          $ac->set("Status", "Lobby");
-          $ac->set("StartTime", $cfg->get("StartTime"));
-          $ac->set("EndTime", $cfg->get("EndTime"));
+          $this->status[$arena] = "Lobby";
+          $this->StartTime[$arena] = (int) $cfg->get("StartTime"));
+          $this->EndTime[$arena] = (int) $cfg->get("EndTime"));
           $ac->set("Team", (int) $team);
           $ac->set("PlayersPerTeam", (int) $tbo);
-          $ac->set("Players", array());
           $ac->save();
+          $this->players[$arena] = array();
           $p->sendMessage($this->sb."§a$arena was successfully built!");
         }else{
           $p->sendMessage("§8» §cThe number of players per team should be 8 or less.");
@@ -338,7 +326,7 @@ class EggWars extends PluginBase{
     $plus = "§8[§a+§8]";
     $minus = "§8[§c-§8]";
     foreach($this->ArenaTeams($arena) as $at){
-      if(!@in_array($at, $this->ky[$arena])){
+      if(!@in_array($at, $this->egg[$arena])){
         $status[] = $this->Teams()[$at].$at.$plus." ";
       }else{
         $status[] = $this->Teams()[$at].$at." ".$minus." ";
@@ -410,10 +398,10 @@ class EggWars extends PluginBase{
   }
 
   public function EggSkin($arena, $team){
-    if(empty($this->ky[$arena])){
+    if(empty($this->egg[$arena])){
       return false;
     }else{
-      if(@in_array($team, $this->ky[$arena])){
+      if(@in_array($team, $this->egg[$arena])){
         return true;
       }else{
         return false;
@@ -428,12 +416,11 @@ class EggWars extends PluginBase{
     if(!$Lobby instanceof Level){
       Server::getInstance()->loadLevel($ac->getNested("Lobby.World"));
     }
-    $ac->set("Status", "Lobby");
-    $ac->set("StartTime", (int) $cfg->get("StartTime"));
-    $ac->set("EndTime", (int) $cfg->get("EndTime"));
-    $ac->set("Players", array());
-    $ac->save();
-    unset($this->ky[$arena]);
+    $this->status[$arena] = "Lobby";
+    $this->StartTime[$arena] = (int) $cfg->get("StartTime");
+    $this->EndTime[$arena] = (int) $cfg->get("EndTime");
+    $this->players[$arena] = array();
+    unset($this->egg[$arena]);
     $this->MapReset($arena);
   }
 

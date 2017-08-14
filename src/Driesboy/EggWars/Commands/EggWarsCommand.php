@@ -101,9 +101,8 @@ class EggWarsCommand extends Command{
           if($main->IsInArena($sender->getName())){
             $arena = $main->IsInArena($sender->getName());
             $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-            if($ac->get("Status") === "Lobby"){
-              $ac->set("StartTime", 6);
-              $ac->save();
+            if($main->status[$arena] === "Lobby"){
+              $main->StartTime[$arena] = 6;
               $sender->sendMessage("§bStarting the game ...");
             }
           }else{
