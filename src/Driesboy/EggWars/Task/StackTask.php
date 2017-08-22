@@ -21,12 +21,12 @@ class StackTask extends PluginTask{
 	public function onRun(int $currentTick) {
 		foreach (Server::getInstance()->getLevels() as $level) {
 			foreach ($level->getEntities() as $entity) {
-				if (!$entity instanceof Item || $entity->closed) continue;
+				if (!$entity instanceof Item || $entity->IsClosed) continue;
 				if ($entity->getItem()->getCount() >= $entity->getItem()->getMaxStackSize()) continue;
 				if (empty($entities = $level->getNearbyEntities($entity->getBoundingBox()->grow(2, 2, 2), $entity))) continue;
 				else {
 					foreach ($entities as $possibleItem) {
-						if (!$possibleItem instanceof Item || $possibleItem->closed) continue;
+						if (!$possibleItem instanceof Item || $possibleItem->IsClosed) continue;
 						if ($possibleItem->getItem()->getCount() > $possibleItem->getItem()->getMaxStackSize()) continue;
 						if ($entity->getItem()->equals($possibleItem->getItem(), true, true)) {
 							if (($newCount = $entity->getItem()->getCount() + $possibleItem->getItem()->getCount()) >= $entity->getItem()->getMaxStackSize()) continue;
@@ -34,7 +34,7 @@ class StackTask extends PluginTask{
 							$this->plugin->getLogger()->debug('Stacked ' . $entity->getItem() . ' with ' . $possibleItem->getItem());
 							$entity->getItem()->setCount($newCount);
 							$this->plugin->getLogger()->debug('got item ' . $entity->getItem());
-							$possibleItem->close();
+							$possibleItem->IsClosed();
 						}
 					}
 				}

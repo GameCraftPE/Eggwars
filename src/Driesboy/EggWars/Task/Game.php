@@ -15,23 +15,26 @@ use pocketmine\utils\TextFormat as TF;
 
 class Game extends PluginTask{
 
-  private $p;
+  /** @var int */
+  private $seconds = 0;
 
-  public function __construct($p){
-    $this->p = $p;
-    parent::__construct($p);
+  private $plugin;
+
+  public function __construct($plugin){
+    parent::__construct($plugin);
+    $this->plugin = $plugin;
   }
 
   public function onRun(int $tick){
-    $main = $this->p;
-    foreach($main->getServer()->getOnlinePlayers() as $player){
+    $main = $this->plugin;
+    foreach($this->plugin->getServer()->getOnlinePlayers() as $player){
       if($player->getLevel()->getFolderName() === "ELobby"){
         if(!$player->getInventory()->getItemInHand()->hasEnchantments()){
-          $player->sendPopup(TF::GRAY."You are playing on ".TF::BOLD.TF::BLUE."GameCraft PE EggWars".TF::RESET."\n".TF::DARK_GRAY."[".TF::LIGHT_PURPLE.count($main->getServer()->getOnlinePlayers()).TF::DARK_GRAY."/".TF::LIGHT_PURPLE.$main->getServer()->getMaxPlayers().TF::DARK_GRAY."] | ".TF::YELLOW."$".$main->getServer()->getPluginManager()->getPlugin("EconomyAPI")->myMoney($player).TF::DARK_GRAY." | ".TF::BOLD.TF::AQUA."Vote: ".TF::RESET.TF::GREEN."vote.gamecraftpe.tk");
+          $player->sendPopup(TF::GRAY."You are playing on ".TF::BOLD.TF::BLUE."GameCraft PE EggWars".TF::RESET."\n".TF::DARK_GRAY."[".TF::LIGHT_PURPLE.count($this->plugin->getServer()->getOnlinePlayers()).TF::DARK_GRAY."/".TF::LIGHT_PURPLE.$this->plugin->getServer()->getMaxPlayers().TF::DARK_GRAY."] | ".TF::YELLOW."$".$this->plugin->getServer()->getPluginManager()->getPlugin("EconomyAPI")->myMoney($player).TF::DARK_GRAY." | ".TF::BOLD.TF::AQUA."Vote: ".TF::RESET.TF::GREEN."vote.gamecraftpe.tk");
         }
       }
     }
-    foreach($main->arenas as $arena){
+    foreach($this->plugin->arenas as $arena){
       if($main->ArenaReady($arena)){
         $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
         $status = $main->status[$arena];
@@ -119,8 +122,7 @@ class Game extends PluginTask{
           }
           foreach($main->players[$arena] as $Is){
             $p = Server::getInstance()->getPlayer($Is);
-            $i = null;
-            foreach($main->Status($arena) as $status){
+            foreach($main->PopupStatus($arena) as $status){
               $i = $status;
             }
             $p->sendPopup($i);
