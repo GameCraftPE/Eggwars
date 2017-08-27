@@ -13,17 +13,16 @@ use pocketmine\utils\TextFormat as TF;
 
 class ParticleTask extends PluginTask{
 
-  /** @var float */
+  private $p;
+
   private $degrees;
 
-  private $plugin;
-
-  public function __construct($plugin){
-    parent::__construct($plugin);
-    $this->plugin = $plugin;
+  public function __construct($p){
+    $this->p = $p;
+    parent::__construct($p);
   }
 
-  public function onRun(int $currentTick){
+  public function onRun(int $tick){
     $main = $this->p;
     foreach($main->getServer()->getOnlinePlayers() as $p) {
       if($p->hasPermission("rank.lapis")) {

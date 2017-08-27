@@ -25,7 +25,8 @@ class Game extends PluginTask{
     $this->plugin = $plugin;
   }
 
-  public function onRun(int $currentTick){
+  public function onRun(int $tick){
+    $main = $this->plugin;
     foreach($this->plugin->getServer()->getOnlinePlayers() as $player){
       if($player->getLevel()->getFolderName() === "ELobby"){
         if(!$player->getInventory()->getItemInHand()->hasEnchantments()){
@@ -33,6 +34,6 @@ class Game extends PluginTask{
         }
       }
     }
-    $this->plugin->tick();
+    $main->tick();
   }
 }
