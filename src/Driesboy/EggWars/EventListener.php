@@ -131,7 +131,6 @@ class EventListener implements Listener{
       if($text[0] === '§8§l» §r§6Egg §fWars §l§8«'){
         $arena = str_ireplace("§e", "", $text[2]);
         $status = $main->ArenaStatus($arena);
-        $player->sendMessage($arena);
         if($status === "Lobby"){
           if(!$main->IsInArena($player)){
             $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
@@ -319,7 +318,7 @@ class EventListener implements Listener{
           if($main->ArenaControl($event->getLine(1))){
             if($main->ArenaReady($event->getLine(1))){
               $arena = $event->getLine(1);
-              $event->setLine(0, "§8§l» §r§6Egg §fWars §l§8«");
+              $event->setLine(0, $main->tyazi);
               $event->setLine(1, "§f0/0");
               $event->setLine(2, "§e$arena");
               $event->setLine(3, "§l§bTap to Join");
