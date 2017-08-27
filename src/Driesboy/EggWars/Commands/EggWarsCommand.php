@@ -35,6 +35,7 @@ class EggWarsCommand extends Command{
           $sender->sendMessage("§8» §e/ew lobby".' <arena> '."§6Set the WaitingLobby!");
           $sender->sendMessage("§8» §e/ew save".' <arena> '."§6Save the map!");
           $sender->sendMessage("§8» §e/ew shop "."§6Spawn a Villager");
+
         }elseif ($args[0] === "create"){
           if(!empty($args[1])){
             if(!empty($args[2]) && is_numeric($args[2])){
@@ -49,6 +50,7 @@ class EggWarsCommand extends Command{
           }else{
             $sender->sendMessage("§8» §c/ew create ".'<arena> <team> <PlayersPerTeam>');
           }
+
         }elseif ($args[0] === "set"){
           if(!empty($args[1])){
             if(!empty($args[2])){
@@ -59,6 +61,7 @@ class EggWarsCommand extends Command{
           }else{
             $sender->sendMessage("§8» §c/ew set ".'<arena> <team>');
           }
+
         }elseif ($args[0] === "lobby"){
           if(!empty($args[1])){
             if($main->ArenaControl($args[1])){
@@ -77,6 +80,7 @@ class EggWarsCommand extends Command{
           }else{
             $sender->sendMessage("§8» §c/ew Lobby ".'<arena>');
           }
+
         }elseif($args[0] === "save"){
           if(!empty($args[1])){
             if($main->ArenaControl($args[1])) {
@@ -95,8 +99,10 @@ class EggWarsCommand extends Command{
           }else{
             $sender->sendMessage("§8» §c/ew save ".'<arena>');
           }
+
         }elseif($args[0] === "shop"){
-          $this->CreateShop($sender->x, $sender->y, $sender->z, $sender->yaw, $sender->pitch, $sender->getLevel(), 1);
+          $this->spawnVillager($sender->x, $sender->y, $sender->z, $sender->yaw, $sender->pitch, $sender->getLevel());
+
         }elseif($args[0] === "start"){
           if($main->IsInArena($sender->getName())){
             $arena = $main->IsInArena($sender->getName());
@@ -119,7 +125,7 @@ class EggWarsCommand extends Command{
   }
 
 
-  public function CreateShop($x, $y, $z, $yaw, $pitch, Level $World, $pro){
+  public function spawnVillager($x, $y, $z, $yaw, $pitch, Level $world){
     $nbt = new CompoundTag("", [
       "Pos" => new ListTag("Pos", [
         new DoubleTag("", $x),
@@ -138,8 +144,8 @@ class EggWarsCommand extends Command{
     ]);
     $nbt->Health = new ShortTag("Health", 10);
     $nbt->CustomName = new StringTag("CustomName", "§6EggWars Shop");
-    $World->loadChunk($x >> 4, $z >> 4);
-    $koylu = Entity::createEntity("Villager", $World, $nbt);
-    $koylu->spawnToAll();
+    $world->loadChunk($x >> 4, $z >> 4);
+    $npc = Entity::createEntity("Villager", $world, $nbt);
+    $npc->spawnToAll();
   }
 }

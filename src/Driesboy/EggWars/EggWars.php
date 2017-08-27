@@ -4,11 +4,12 @@ namespace Driesboy\EggWars;
 
 use Driesboy\EggWars\Commands\HubCommand;
 use Driesboy\EggWars\Commands\EggWarsCommand;
-use Driesboy\EggWars\Task\Game;
+use Driesboy\EggWars\Task\GameTask;
 use Driesboy\EggWars\Task\SignManager;
 use Driesboy\EggWars\Task\StackTask;
 use pocketmine\item\Item;
 use pocketmine\level\Level;
+use pocketmine\network\mcpe\protocol\AddEntityPacket;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
@@ -23,7 +24,6 @@ use pocketmine\nbt\tag\StringTag;
 use pocketmine\tile\Chest;
 use pocketmine\tile\Tile;
 use pocketmine\entity\Entity;
-use pocketmine\network\mcpe\protocol\AddEntityPacket;
 
 use pocketmine\network\mcpe\protocol\ContainerSetContentPacket;
 use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
@@ -33,37 +33,87 @@ use pocketmine\network\mcpe\protocol\types\ContainerIds;
 class EggWars extends PluginBase{
 
   private static $ins;
+
   public $ky = array();
   public $sb = '§6EggWars> ';
   public $tyazi = '§8§l» §r§6Egg §fWars §l§8«';
-  public $m = array();
-  public $mo = array();
+
+  public $shop =
+  [
+    [
+      "name" => "Blocks",
+      "item" => Item::BRICKS_BLOCK,
+      "items" =>
+      [ // item:id:amount:paymentid:paymentamount
+        Item::SANDSTONE.":0:4:265:1", Item::END_STONE.":0:4:265:4", Item::GLASS.":0:2:265:1", Item::GLOWSTONE.":0:2:265:3", Item::OBSIDIAN.":0:1:266:4"
+      ]
+    ],
+    [
+      "name" => "Weapons",
+      "item" => Item::GOLDEN_SWORD,
+      "items" =>
+      [ // item:id:amount:paymentid:paymentamount
+        Item::WOODEN_SWORD.":0:1:265:5", Item::STONE_SWORD.":0:1:265:32", Item::IRON_SWORD.":0:1:266:16", Item::IRON_SWORD.":0:1:266:16", Item::DIAMOND_SWORD.":0:1:264:12", Item::BOW.":0:1:264:15", Item::ARROW.":0:2:266:2"
+      ]
+    ],
+    [
+      "name" => "Armor",
+      "item" => Item::IRON_CHESTPLATE,
+      "items" =>
+      [ // item:id:amount:paymentid:paymentamount
+        Item::LEATHER_CAP.":0:1:265:1", Item::LEATHER_TUNIC.":0:1:265:1", Item::LEATHER_PANTS.":0:1:265:1", Item::LEATHER_BOOTS.":0:1:265:1", Item::CHAIN_HELMET.":0:1:266:10", Item::CHAIN_CHESTPLATE.":0:1:266:10", Item::CHAIN_LEGGINGS.":0:1:266:10", Item::CHAIN_BOOTS.":0:1:266:10", Item::IRON_HELMET.":0:1:264:5", Item::IRON_CHESTPLATE.":0:1:264:5", Item::IRON_LEGGINGS.":0:1:264:5", Item::IRON_BOOTS.":0:1:264:5"
+      ]
+    ],
+    [
+      "name" => "Food",
+      "item" => Item::CARROT,
+      "items" =>
+      [ // item:id:amount:paymentid:paymentamount
+        Item::CARROT.":0:5:265:1", Item::STEAK.":0:1:265:1", Item::CAKE.":0:1:265:4", Item::GOLDEN_APPLE.":0:5:265:1", Item::GOLDEN_CARROT.":0:1:266:1"
+      ]
+    ],
+    [
+      "name" => "PICKAXES",
+      "item" => Item::DIAMOND_PICKAXE,
+      "items" =>
+      [ // item:id:amount:paymentid:paymentamount
+        Item::WOODEN_PICKAXE.":0:1:265:1", Item::STONE_PICKAXE.":0:1:265:32", Item::IRON_PICKAXE.":0:1:266:5", Item::DIAMOND_PICKAXE.":0:1:264:12"
+      ]
+    ]
+  ];
 
   public function onEnable(){
     @mkdir($this->getDataFolder());
     @mkdir($this->getDataFolder()."Arenas/");
     @mkdir($this->getDataFolder()."Back-Up/");
+
+    $cfg = new Config($this->getDataFolder()."config.yml", Config::YAML, [
+      "StartTime" => 61,
+      "EndTime" => 16,
+      "BuildBlocks" => [24, 20, 89, 49, 54, 92, 121]
+    ]);
+    $cfg->save();
+
+    Server::getInstance()->getPluginManager()->registerEvents(new EventListener(), $this);
+    Server::getInstance()->getScheduler()->scheduleRepeatingTask(new SignManager($this), 20);
+    Server::getInstance()->getScheduler()->scheduleRepeatingTask(new GameTask($this), 20);
+    Server::getInstance()->getScheduler()->scheduleDelayedRepeatingTask(new StackTask($this), 15, 15);
+    Server::getInstance()->getCommandMap()->register("ew", new EggwarsCommand());
+    Server::getInstance()->getCommandMap()->register("lobby", new HubCommand());
+
+    $this->arenalariHazirla();
+    @mkdir($this->getDataFolder());
+    @mkdir($this->getDataFolder()."Arenas/");
+    @mkdir($this->getDataFolder()."Back-Up/");
     self::$ins = $this;
-    $this->saveDefaultConfig();
-    $this->saveResource("shop.yml");
-    $this->AnotherPrepare();
-    $this->PrepareArenas();
+    $this->prepareArenas();
   }
 
   public static function getInstance(){
     return self::$ins;
   }
 
-  public function AnotherPrepare(){
-    Server::getInstance()->getPluginManager()->registerEvents(new EventListener(), $this);
-    Server::getInstance()->getScheduler()->scheduleRepeatingTask(new SignManager($this), 20);
-    Server::getInstance()->getScheduler()->scheduleRepeatingTask(new Game($this), 20);
-    Server::getInstance()->getScheduler()->scheduleDelayedRepeatingTask(new StackTask($this), 15, 15);
-    Server::getInstance()->getCommandMap()->register("ew", new EggwarsCommand());
-    Server::getInstance()->getCommandMap()->register("lobby", new HubCommand());
-  }
-
-  public function PrepareArenas(){
+  public function prepareArenas(){
     foreach($this->Arenas() as $arena){
       if($this->ArenaReady($arena)){
         $this->ArenaRefresh($arena);
@@ -470,31 +520,29 @@ class EggWars extends PluginBase{
     }
   }
 
-  public function EmptyShop(Player $p){
-    $p->getLevel()->setBlock(new Vector3($p->getFloorX(), $p->getFloorY() - 4, $p->getFloorZ()), Block::get(Block::CHEST));
+  public function EmptyShop(Player $playerlayer){
+    $player->getLevel()->setBlock(new Vector3($player->getFloorX(), $player->getFloorY() - 4, $player->getFloorZ()), Block::get(Block::CHEST));
     $nbt = new CompoundTag("", [
       new ListTag("Items", []),
       new StringTag("id", Tile::CHEST),
-      new IntTag("x", $p->getFloorX()),
-      new IntTag("y", $p->getFloorY() - 4),
-      new IntTag("z", $p->getFloorZ()),
-      new StringTag("CustomName", "§6EggWars Shop")
+      new IntTag("x", $player->getFloorX()),
+      new IntTag("y", $player->getFloorY() - 4),
+      new IntTag("z", $player->getFloorZ()),
+      new StringTag("CustomName", "§6EggWars §fShop")
     ]);
     $nbt->Items->setTagType(NBT::TAG_Compound);
-    $tile = Tile::createTile("Chest", $p->getLevel(), $nbt);
+    $tile = Tile::createTile("Chest", $player->getLevel(), $nbt);
     if($tile instanceof Chest) {
-      $config = new Config($this->getDataFolder() . "shop.yml", Config::YAML);
-      $shop = $config->get("shop");
-      $tile->setName("§6EggWars Shop");
       $tile->getInventory()->clearAll();
-      for ($i = 0; $i < count($shop); $i+=2) {
-        $slot = $i / 2;
-        $tile->getInventory()->setItem($slot, Item::get($shop[$i], 0, 1));
+      $shopitems = $this->shop;
+      for($i = 0; $i < count($shopitems); $i++){
+        $mitem = Item::fromString($shopitems[$i]["item"])->setCustomName($shopitems[0]["name"]);
+        $tile->getInventory()->setItem($i, $mitem);
       }
-      $tile->getInventory()->setItem($tile->getInventory()->getSize()-1, Item::get(Item::WOOL, 14, 1));
-      $p->addWindow($tile->getInventory());
+      $player->addWindow($tile->getInventory());
     }
   }
+
   public function lightning($x, $y, $z, $level){
     $pk = new AddEntityPacket();
     $pk->type = 93;

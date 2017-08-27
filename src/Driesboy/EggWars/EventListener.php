@@ -18,7 +18,6 @@ use pocketmine\block\Block;
 use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\event\inventory\InventoryCloseEvent;
 use pocketmine\inventory\ChestInventory;
-use pocketmine\inventory\PlayerInventory;
 use pocketmine\item\Item;
 use pocketmine\tile\Sign;
 use pocketmine\tile\Chest;
@@ -166,7 +165,7 @@ class EventListener implements Listener{
       $y = $sign->getText();
       if($y[0] === "§fIron" || $y[0] === "§6Gold" || $y[0] === "§bDiamond"){
         $tip = $y[0];
-        $level = str_ireplace("§eLevel ", "", $y[1]);
+        $level = (int) explode(" ", $y[1])[1];
         switch($level){
           case 0:
           switch ($tip){
@@ -426,8 +425,8 @@ class EventListener implements Listener{
       if($p instanceof Villager && $d instanceof Player){
         if($p->getNameTag() === "§6EggWars Shop"){
           $e->setCancelled();
-          $main->m[$d->getName()] = "ok";
           $main->EmptyShop($d);
+          return;
         }
       }
       if($p instanceof Player && $d instanceof Player){
@@ -526,117 +525,65 @@ class EventListener implements Listener{
     $env = $e->getInventory();
     $main = EggWars::getInstance();
     if($env instanceof ChestInventory){
-      if(!empty($main->m[$p->getName()])){
-        $p->getLevel()->setBlock(new Vector3($p->getFloorX(), $p->getFloorY() - 4, $p->getFloorZ()), Block::get(Block::AIR));
-        unset($main->m[$p->getName()]);
+      if($o->getLevel()->getBlockIdAt($o->x, $o->y - 4, $o->z) == 54){
+        $o->getLevel()->setBlockIdAt($o->getFloorX(), $o->getFloorY() - 4, $o->getFloorZ(), 0);
       }
     }
   }
 
   public function StoreEvent(InventoryTransactionEvent $e){
-    $envanter = $e->getTransaction()->getInventories();
-    $trans = $e->getTransaction()->getTransactions();
     $main = EggWars::getInstance();
-    $p = null;
-    $sb = null;
-    $transfer = null;
-    foreach($envanter as $env){
-      $Held = $env->getHolder();
-      if($Held instanceof Chest){
-        $sb = $Held->getBlock();
-      }
-      if($Held instanceof Player){
-        $p = $Held;
-      }
-    }
-
-    foreach($trans as $t){
-      if($t->getInventory() instanceof PlayerInventory){
-        $transfer = $t;
-      }
-    }
-
-    if($p != null and $sb != null and $transfer != null){
-
-      $shopc = new Config($main->getDataFolder()."shop.yml", Config::YAML);
-      $shop = $shopc->get("shop");
-      $sandik = $p->getLevel()->getTile($sb);
-      if($sandik instanceof Chest){
-        $item = $transfer->getTargetItem();
-        $si = $sandik->getInventory();
-
-        if(empty($main->m[$p->getName()])){
-          $itemler = 0;
-          for($i=0; $i<count($shop); $i += 2){
-            $slot = $i / 2;
-            if($item->getId() === $shop[$i]){
-              $itemler++;
-            }
-          }
-          if($itemler === count($shop)){
-            $main->m[$p->getName()] = 1;
-          }
-        }else{
-          $e->setCancelled();
-          if($item->getId() === 35 && $item->getDamage() === 14){
-            $e->setCancelled();
-            $shopc->reload();
-            $shop = $shopc->get("shop");
-            $sandik->getInventory()->clearAll();
-            for($i=0; $i<count($shop); $i += 2){
-              $slot = $i / 2;
-              $sandik->getInventory()->setItem($slot, Item::get($shop[$i], 0, 1));
-            }
-          }
-          $transSlot = 0;
-          for($i=0; $i<$si->getSize(); $i++){
-            if($si->getItem($i)->getId() === $item->getId()){
-              $transSlot = $i;
-              break;
-            }
-          }
-          $is = $si->getItem(1)->getId();
-          if($transSlot % 2 != 0 && ($is === 264 or $is === 265 or $is === 266)){
-            $e->setCancelled();
-          }
-          if($item->getId() === 264 or $item->getId() === 265 or $item->getId() === 266){
-            $e->setCancelled();
-          }
-          if($transSlot % 2 === 0 && ($is === 264 or $is === 265 or $is === 266)){
-            $ucret = $si->getItem($transSlot + 1)->getCount();
-            $para = $main->ItemId($p, $si->getItem($transSlot + 1)->getId());
-            if($para >= $ucret){
-              $p->getInventory()->removeItem(Item::get($si->getItem($transSlot + 1)->getId(), 0, $ucret));
-              $aitemd = $si->getItem($transSlot);
-              $aitem = Item::get($aitemd->getId(), $aitemd->getDamage(), $aitemd->getCount());
-              $p->getInventory()->addItem($aitem);
-            }
-            $e->setCancelled();
-          }
-          if($is != 264 or $is != 265 or $is != 266){
-            $e->setCancelled();
-            $shopc->reload();
-            $shop = $shopc->get("shop");
-            for($i=0; $i<count($shop); $i+=2){
-              if($item->getId() === $shop[$i]){
-                $sandik->getInventory()->clearAll();
-                $gyer = $shop[$i+1];
-                $slot = 0;
-                for($e=0; $e<count($gyer); $e++){
-                  $sandik->getInventory()->setItem($slot, Item::get($gyer[$e][0], 0, $gyer[$e][1]));
-                  $slot++;
-                  $sandik->getInventory()->setItem($slot, Item::get($gyer[$e][2], 0, $gyer[$e][3]));
-                  $slot++;
+    foreach ($e->getQueue()->getTransactions() as $t) {
+      $env = $t->getInventory();
+      if ($env instanceof ChestInventory) {
+        foreach ($env->getViewers() as $o) {
+          $sandik = $env->getHolder(); // item:id:amount:paymentid:paymentamount
+          if ($sandik instanceof Chest) {
+            $shopitems = $main->shop;
+            $item = $t->getItem($t->getSlot());
+            if(!($item instanceof Item)) return;
+            if($env->getItem(26)->getId() == 0){ // Start menu
+              foreach ($shopitems as $shopitem){
+                $mitem = Item::fromString($shopitem["id"]);
+                if($mitem->getId() == $item->getId()){
+                  $env->clearAll();
+                  foreach($shopitem["items"] as $gitem){
+                    $slot = array_search($gitem, $shopitems["items"]);
+                    $parcala = explode(":", $gitem);
+                    $env->setItem($slot * 2, Item::get($parcala[0], $parcala[1], $parcala[2]));
+                    $env->setItem($slot * 2 + 1, Item::get($parcala[3], 0, $parcala[4]));
+                  }
+                  $env->setItem(26, Item::get(Item::WOOL, 14, 1)->setCustomName("§r§cBack"));
                 }
-                break;
+              }
+            }else{
+              $illegal = [264,265,266];
+              if(in_array($item->getId(), $illegal)){
+                $e->setCancelled();
+              }else{
+                $slot = $t->getSlot();
+                if($slot == 26){
+                  $env->clearAll();
+                  for($i=0; $i<count($shopitems); $i++){
+                    $mitem = Item::fromString($shopitems[$i]["item"])->setCustomName("§r".$shopitems[0]["name"]);
+                    $env->setItem($i, $mitem);
+                  }
+                }else{
+                  if($o->getInventory()->contains($env->getItem($slot + 1))){
+                    $o->getInventory()->addItem($env->getItem($slot));
+                    $o->getInventory()->remove($env->getItem($slot + 1));
+                    $o->sendMessage("§8» §aItems received.");
+                  }else{
+                    $e->setCancelled();
+                    $o->sendMessage("§8» §cThe fee is incomplete.");
+                  }
+                }
               }
             }
-            $sandik->getInventory()->setItem($sandik->getInventory()->getSize() - 1, Item::get(Item::WOOL, 14, 1));
           }
         }
       }
     }
-
   }
 
   public function BlockBreakEvent(BlockBreakEvent $e){

@@ -13,7 +13,7 @@ use pocketmine\math\Vector3;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\utils\TextFormat as TF;
 
-class Game extends PluginTask{
+class GameTask extends PluginTask{
 
   private $p;
   public function __construct($p){
