@@ -16,9 +16,9 @@ class HubCommand extends Command{
 
   public function execute(CommandSender $sender, string $label, array $args){
     $main = EggWars::getInstance();
-    if($main->IsInArena($sender)){
-      $arena = $main->IsInArena($sender);
-      $main->RemoveArenaPlayer($arena, $sender);
+    if($main->IsInArena($sender->getName())){
+      $arena = $main->IsInArena($sender->getName());
+      $main->RemoveArenaPlayer($arena, $sender->getName());
       $sender->teleport(Server::getInstance()->getDefaultLevel()->getSafeSpawn());
       $sender->sendMessage("§8» §aYou are teleported to the Lobby");
     }

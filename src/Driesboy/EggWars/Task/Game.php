@@ -16,7 +16,6 @@ use pocketmine\utils\TextFormat as TF;
 class Game extends PluginTask{
 
   private $p;
-
   public function __construct($p){
     $this->p = $p;
     parent::__construct($p);
@@ -24,23 +23,25 @@ class Game extends PluginTask{
 
   public function onRun(int $tick){
     $main = $this->p;
-    foreach($main->getServer()->getOnlinePlayers() as $player){
-      if($player->getLevel()->getFolderName() === "ELobby"){
-        if(!$player->getInventory()->getItemInHand()->hasEnchantments()){
-          $player->sendPopup(TF::GRAY."You are playing on ".TF::BOLD.TF::BLUE."GameCraft PE EggWars".TF::RESET."\n".TF::DARK_GRAY."[".TF::LIGHT_PURPLE.count($main->getServer()->getOnlinePlayers()).TF::DARK_GRAY."/".TF::LIGHT_PURPLE.$main->getServer()->getMaxPlayers().TF::DARK_GRAY."] | ".TF::YELLOW."$".$main->getServer()->getPluginManager()->getPlugin("EconomyAPI")->myMoney($player).TF::DARK_GRAY." | ".TF::BOLD.TF::AQUA."Vote: ".TF::RESET.TF::GREEN."vote.gamecraftpe.tk");
+    $pl = $main->getServer()->getOnlinePlayers();
+    foreach($pl as $p){
+      if($p->getLevel()->getFolderName() === "ELobby"){
+        if(!$p->getInventory()->getItemInHand()->hasEnchantments()){
+          $p->sendPopup(TF::GRAY."You are playing on ".TF::BOLD.TF::BLUE."GameCraft PE EggWars".TF::RESET."\n".TF::DARK_GRAY."[".TF::LIGHT_PURPLE.count($main->getServer()->getOnlinePlayers()).TF::DARK_GRAY."/".TF::LIGHT_PURPLE.$main->getServer()->getMaxPlayers().TF::DARK_GRAY."] | ".TF::YELLOW."$".$main->getServer()->getPluginManager()->getPlugin("EconomyAPI")->myMoney($p).TF::DARK_GRAY." | ".TF::BOLD.TF::AQUA."Vote: ".TF::RESET.TF::GREEN."vote.gamecraftpe.tk");
         }
       }
     }
-    foreach($main->arenas as $arena){
+    foreach($main->Arenas() as $arena){
       if($main->ArenaReady($arena)){
         $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-        $status = $main->status[$arena];
+        $status = $ac->get("Status");
         if($status === "Lobby"){
-          $time = (int) $main->StartTime[$arena];
+          $time = (int) $ac->get("StartTime");
           if($time > 0 || $time <= 0){
-            if(count($main->players[$arena]) >= $main->teamscount[$arena]){
+            if(count($main->ArenaPlayer($arena)) >= $ac->get("Team")){
               $time--;
-              $main->StartTime[$arena] = $time;
+              $ac->set("StartTime", $time);
+              $ac->save();
               switch ($time){
                 case 120:
                 $main->ArenaMessage($arena, "§9EggWars starting in 2 minutes");
@@ -62,30 +63,31 @@ class Game extends PluginTask{
                 break;
                 default:
                 if($time <= 0) {
-                  foreach ($main->players[$arena] as $p) {
-                    $player = $main->getServer()->getPlayer($p);
-                    if ($player instanceof Player) {
-                      if (!$main->PlayerTeamColor($player)) {
+                  foreach ($main->ArenaPlayer($arena) as $Is) {
+                    $p = $main->getServer()->getPlayer($Is);
+                    if ($p instanceof Player) {
+                      if (!$main->PlayerTeamColor($p)) {
                         $team = $main->AvailableRastTeam($arena);
-                        $player->setNameTag($team . $player->getName());
+                        $p->setNameTag($team . $p->getName());
                       }
-                      $team = $main->PlayerTeamColor($player);
-                      $player->teleport(new Position($ac->getNested($team . ".X"), $ac->getNested($team . ".Y"), $ac->getNested($team . ".Z"), $main->getServer()->getLevelByName($ac->get("World"))));
-                      $player->getInventory()->clearAll();
-                      $player->getInventory()->sendContents($player);
-                      $player->setFood(20);
-                      $player->sendMessage("§1Go!");
+                      $team = $main->PlayerTeamColor($p);
+                      $p->teleport(new Position($ac->getNested($team . ".X"), $ac->getNested($team . ".Y"), $ac->getNested($team . ".Z"), $main->getServer()->getLevelByName($ac->get("World"))));
+                      $p->getInventory()->clearAll();
+                      $p->getInventory()->sendContents($p);
+                      $p->setFood(20);
+                      $p->sendMessage("§1Go!");
                     }
                   }
-                  $main->status[$arena] = "In-Game";
+                  $ac->set("Status", "In-Game");
+                  $ac->save();
                 }
                 break;
               }
-              foreach($main->players[$arena] as $p){
-                $player = $main->getServer()->getPlayer($p);
-                if($player instanceof Player){
-                  $player->setXpLevel($time);
-                  $player->getInventory()->sendContents($player);
+              $all = $main->ArenaPlayer($arena);
+              foreach($all as $p){
+                $p = $main->getServer()->getPlayer($p);
+                if($p instanceof Player){
+                  $p->setXpLevel($time);
                 }
               }
             }
@@ -117,18 +119,19 @@ class Game extends PluginTask{
               }
             }
           }
-          foreach($main->players[$arena] as $Is){
+          foreach($main->ArenaPlayer($arena) as $Is){
             $p = Server::getInstance()->getPlayer($Is);
             $i = null;
             foreach($main->Status($arena) as $status){
-              $i = $status;
+              $i.=$status;
             }
             $p->sendPopup($i);
           }
           if($main->OneTeamRemained($arena)){
-            $main->status[$arena] = "Done";
+            $ac->set("Status", "Done");
+            $ac->save();
             $main->ArenaMessage($arena, "§aCongratulations, you win!");
-            foreach ($main->players[$arena] as $Is) {
+            foreach ($main->ArenaPlayer($arena) as $Is) {
               $p = Server::getInstance()->getPlayer($Is);
               if(!($p instanceof Player)){
                 return true;
@@ -138,11 +141,12 @@ class Game extends PluginTask{
             Server::getInstance()->broadcastMessage("$team §9won the game on §b$arena!");
           }
         }elseif($status === "Done"){
-          $bitis = (int) $main->EndTime[$arena];
+          $bitis = (int) $ac->get("EndTime");
           if($bitis > 0 || $bitis <= 0){
             $bitis--;
-            $main->EndTime[$arena] = $bitis;
-            foreach($main->players[$arena] as $players){
+            $ac->set("EndTime", $bitis);
+            $ac->save();
+            foreach($main->ArenaPlayer($arena) as $players){
               $p = Server::getInstance()->getPlayer($players);
               if($bitis <= 1){
                 $main->RemoveArenaPlayer($arena, $p->getName());
@@ -154,7 +158,8 @@ class Game extends PluginTask{
             }
           }
         }else{
-          $main->status[$arena] = "Done";
+          $ac->set("Status", "Done");
+          $ac->save();
         }
       }
     }

@@ -98,11 +98,12 @@ class EggWarsCommand extends Command{
         }elseif($args[0] === "shop"){
           $this->CreateShop($sender->x, $sender->y, $sender->z, $sender->yaw, $sender->pitch, $sender->getLevel(), 1);
         }elseif($args[0] === "start"){
-          if($main->IsInArena($sender)){
-            $arena = $main->IsInArena($sender);
+          if($main->IsInArena($sender->getName())){
+            $arena = $main->IsInArena($sender->getName());
             $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-            if($main->status[$arena] === "Lobby"){
-              $main->StartTime[$arena] = 6;
+            if($ac->get("Status") === "Lobby"){
+              $ac->set("StartTime", 6);
+              $ac->save();
               $sender->sendMessage("§bStarting the game ...");
             }
           }else{
