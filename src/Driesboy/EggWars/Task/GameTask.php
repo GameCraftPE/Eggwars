@@ -17,6 +17,7 @@ use pocketmine\utils\TextFormat as TF;
 class GameTask extends PluginTask{
 
   private $p;
+
   public function __construct($p){
     $this->p = $p;
     parent::__construct($p);
@@ -31,17 +32,16 @@ class GameTask extends PluginTask{
         }
       }
     }
-    foreach($main->Arenas() as $arena){
+    foreach($main->arenas as $arena){
       if($main->ArenaReady($arena)){
         $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
-        $status = $ac->get("Status");
+        $status = $main->status[$arena];
         if($status === "Lobby"){
-          $time = (int) $ac->get("StartTime");
+          $time = (int) $main->StartTime[$arena];
           if($time > 0 || $time <= 0){
-            if(count($main->ArenaPlayer($arena)) >= $ac->get("Team")){
+            if(count($main->players[$arena]) >= $main->teamscount[$arena]){
               $time--;
-              $ac->set("StartTime", $time);
-              $ac->save();
+              $main->StartTime[$arena] = $time;
               switch ($time){
                 case 120:
                 $main->ArenaMessage($arena, "§9EggWars starting in 2 minutes");
@@ -63,31 +63,30 @@ class GameTask extends PluginTask{
                 break;
                 default:
                 if($time <= 0) {
-                  foreach ($main->ArenaPlayer($arena) as $Is) {
-                    $p = $main->getServer()->getPlayer($Is);
-                    if ($p instanceof Player) {
-                      if (!$main->PlayerTeamColor($p)) {
+                  foreach ($main->players[$arena] as $p) {
+                    $player = $main->getServer()->getPlayer($p);
+                    if ($player instanceof Player) {
+                      if (!$main->PlayerTeamColor($player)) {
                         $team = $main->AvailableRastTeam($arena);
-                        $p->setNameTag($team . $p->getName());
+                        $player->setNameTag($team . $player->getName());
                       }
-                      $team = $main->PlayerTeamColor($p);
-                      $p->teleport(new Position($ac->getNested($team . ".X"), $ac->getNested($team . ".Y"), $ac->getNested($team . ".Z"), $main->getServer()->getLevelByName($ac->get("World"))));
-                      $p->getInventory()->clearAll();
-                      $p->getInventory()->sendContents($p);
-                      $p->setFood(20);
-                      $p->sendMessage("§1Go!");
+                      $team = $main->PlayerTeamColor($player);
+                      $player->teleport(new Position($ac->getNested($team . ".X"), $ac->getNested($team . ".Y"), $ac->getNested($team . ".Z"), $main->getServer()->getLevelByName($ac->get("World"))));
+                      $player->getInventory()->clearAll();
+                      $player->getInventory()->sendContents($player);
+                      $player->setFood(20);
+                      $player->sendMessage("§1Go!");
                     }
                   }
-                  $ac->set("Status", "In-Game");
-                  $ac->save();
+                  $main->status[$arena] = "In-Game";
                 }
                 break;
               }
-              $all = $main->ArenaPlayer($arena);
-              foreach($all as $p){
-                $p = $main->getServer()->getPlayer($p);
-                if($p instanceof Player){
-                  $p->setXpLevel($time);
+              foreach($main->players[$arena] as $p){
+                $player = $main->getServer()->getPlayer($p);
+                if($player instanceof Player){
+                  $player->setXpLevel($time);
+                  $player->getInventory()->sendContents($player);
                 }
               }
             }
@@ -119,19 +118,18 @@ class GameTask extends PluginTask{
               }
             }
           }
-          foreach($main->ArenaPlayer($arena) as $Is){
+          foreach($main->players[$arena] as $Is){
             $p = Server::getInstance()->getPlayer($Is);
             $i = null;
             foreach($main->Status($arena) as $status){
-              $i.=$status;
+              $i = $status;
             }
             $p->sendPopup($i);
           }
           if($main->OneTeamRemained($arena)){
-            $ac->set("Status", "Done");
-            $ac->save();
+            $main->status[$arena] = "Done";
             $main->ArenaMessage($arena, "§aCongratulations, you win!");
-            foreach ($main->ArenaPlayer($arena) as $Is) {
+            foreach ($main->players[$arena] as $Is) {
               $p = Server::getInstance()->getPlayer($Is);
               if(!($p instanceof Player)){
                 return true;
@@ -141,12 +139,11 @@ class GameTask extends PluginTask{
             Server::getInstance()->broadcastMessage("$team §9won the game on §b$arena!");
           }
         }elseif($status === "Done"){
-          $bitis = (int) $ac->get("EndTime");
+          $bitis = (int) $main->EndTime[$arena];
           if($bitis > 0 || $bitis <= 0){
             $bitis--;
-            $ac->set("EndTime", $bitis);
-            $ac->save();
-            foreach($main->ArenaPlayer($arena) as $players){
+            $main->EndTime[$arena] = $bitis;
+            foreach($main->players[$arena] as $players){
               $p = Server::getInstance()->getPlayer($players);
               if($bitis <= 1){
                 $main->RemoveArenaPlayer($arena, $p->getName());
@@ -158,8 +155,7 @@ class GameTask extends PluginTask{
             }
           }
         }else{
-          $ac->set("Status", "Done");
-          $ac->save();
+          $main->status[$arena] = "Done";
         }
       }
     }
