@@ -172,14 +172,7 @@ class EggWars extends PluginBase{
       $pk->targetEid = $player->getId();
       $player->dataPacket($pk);
     }
-    $this->removeElementWithValue($this->players, $arena, $player->getName());
-  }
-  public function removeElementWithValue($array, $key, $value){
-     foreach($array as $subKey => $subArray){
-          if($subArray[$key] == $value){
-               unset($array[$subKey]);
-          }
-     }
+    unset($this->players[$arena][array_search($player->getName(), $this->players[$arena])]);
   }
 
   public function AddArenaPlayer($arena, Player $player){
@@ -392,15 +385,19 @@ class EggWars extends PluginBase{
         $status[] = $this->Teams()[$at].$at." ".$minus." ";
       }
     }
-    return $status;
+    foreach($this->players[$arena] as $p){
+      $player = $this->getServer()->getPlayer($p);
+      if ($player instanceof Player) {
+        $player->sendPopup($status);
+      }
+    }
   }
 
   public function ArenaMessage($arena, $message){
-    $players = $this->players[$arena];
-    foreach($players as $player){
-      $p = $this->getServer()->getPlayer($player);
-      if($p instanceof Player){
-        $p->sendMessage($message);
+    foreach($this->players[$arena] as $p){
+      $player = $this->getServer()->getPlayer($p);
+      if($player instanceof Player){
+        $player->sendMessage($message);
       }
     }
   }
@@ -484,22 +481,28 @@ class EggWars extends PluginBase{
     $this->MapReset($arena);
   }
 
-  public function OneTeamRemained($arena){
-    $players = $this->players[$arena];
+  public function CheckOneTeamRemained($arena){
     $teams = array();
-    foreach ($players as $pl){
-      $p = Server::getInstance()->getPlayer($pl);
-      if($p instanceof Player){
-        $team = $this->PlayerTeamColor($p);
+    foreach ($this->players[$arena] as $p){
+      $player = Server::getInstance()->getPlayer($p);
+      if($player instanceof Player){
+        $team = $this->PlayerTeamColor($player);
         if(!in_array($team, $teams)){
           $teams[] = $team;
         }
       }
     }
     if(count($teams) === 1){
-      return true;
-    }else{
-      return false;
+      $this->status[$arena] = "Done";
+      $this->ArenaMessage($arena, "§aCongratulations, you win!");
+      foreach ($this->players[$arena] as $p) {
+        $player = Server::getInstance()->getPlayer($p);
+        if(!($player instanceof Player)){
+          return true;
+        }
+        $team = $this->PlayerTeamColor($player);
+      }
+      Server::getInstance()->broadcastMessage("$team §9won the game on §b$arena!");
     }
   }
 
@@ -544,4 +547,126 @@ class EggWars extends PluginBase{
       $pl->dataPacket($pk);
     }
   }
+
+  public function tick(){
+    foreach($this->arenas as $arena){
+      if($this->status[$arena] === "Lobby"){
+        $time = (int)$this->StartTime[$arena];
+        if($time > 0 || $time <= 0){
+          if(count($this->players[$arena]) >= $this->teamscount[$arena]){
+            $time--;
+            $this->StartTime[$arena] = $time;
+            // CountDown
+            switch ($time){
+              case 120:
+              $this->ArenaMessage($arena, "§9EggWars starting in 2 minutes");
+              break;
+              case 90:
+              $this->ArenaMessage($arena, "§9EggWars starting in 1 minute and 30 seconds");
+              break;
+              case 60:
+              $this->ArenaMessage($arena, "§9EggWars starting in 1 minute");
+              break;
+              case 30:
+              case 15:
+              case 5:
+              case 4:
+              case 3:
+              case 2:
+              case 1:
+              $this->ArenaMessage($arena, "§9EggWars starting in $time seconds");
+              break;
+              default:
+              foreach($this->players[$arena] as $p){
+                $player = $this->getServer()->getPlayer($p);
+                if($player instanceof Player){
+                  $player->setXpLevel($time);
+                  $player->getInventory()->sendContents($player);
+                }
+              }
+              if($time <= 0) {
+                foreach ($this->players[$arena] as $p) {
+                  $player = $this->getServer()->getPlayer($p);
+                  if ($player instanceof Player) {
+                    if (!$this->PlayerTeamColor($player)) {
+                      $team = $this->AvailableRastTeam($arena);
+                      $player->setNameTag($team . $player->getName());
+                    }
+                    $team = $this->PlayerTeamColor($player);
+                    $ac = new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML);
+                    $player->teleport(new Position($ac->getNested($team . ".X"), $ac->getNested($team . ".Y"), $ac->getNested($team . ".Z"), $this->getServer()->getLevelByName($ac->get("World"))));
+                    $player->getInventory()->clearAll();
+                    $player->getInventory()->sendContents($player);
+                    $player->setFood(20);
+                    $player->sendMessage("§1Go!");
+                  }
+                }
+                $this->status[$arena] = "In-Game";
+              }
+              break;
+            }
+          }
+        }
+      }elseif($this->status[$arena] === "In-Game"){
+        $level = Server::getInstance()->getLevelByName(new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML)->get("World"));
+        $tiles = $level->getTiles();
+        foreach ($tiles as $sign){
+          if($sign instanceof Sign){
+            $text = $sign->getText();
+            if($text[0] === "§fIron"){
+              foreach($level->getNearbyEntities(new AxisAlignedBB($sign->x - 5, $sign->y - 5, $sign->z - 5, $sign->x + 5, $sign->y + 5, $sign->z + 5)) as $p){
+                if($p instanceof Player){
+                  if(time() % $second === 0){
+                    $p->getInventory()->addItem(Item::get(265));
+                    $p->getInventory()->sendContents($p);
+                  }
+                }
+              }
+            }
+            if($text[0] === "§6Gold"){
+              foreach($level->getNearbyEntities(new AxisAlignedBB($sign->x - 5, $sign->y - 5, $sign->z - 5, $sign->x + 5, $sign->y + 5, $sign->z + 5)) as $p){
+                if($p instanceof Player){
+                  if(time() % $second === 0){
+                    $p->getInventory()->addItem(Item::get(266));
+                    $p->getInventory()->sendContents($p);
+                  }
+                }
+              }
+            }
+            if($text[0] === "§bDiamond"){
+              foreach($level->getNearbyEntities(new AxisAlignedBB($sign->x - 5, $sign->y - 5, $sign->z - 5, $sign->x + 5, $sign->y + 5, $sign->z + 5)) as $p){
+                if($p instanceof Player){
+                  if(time() % $second === 0){
+                    $p->getInventory()->addItem(Item::get(264));
+                    $p->getInventory()->sendContents($p);
+                  }
+                }
+              }
+            }
+          }
+        }
+        $this->PopupStatus($arena);
+        $this->CheckOneTeamRemained($arena);
+      }elseif($this->status[$arena] === "Done"){
+        $bitis = (int) $this->EndTime[$arena];
+        if($bitis > 0 || $bitis <= 0){
+          $bitis--;
+          $this->EndTime[$arena] = $bitis;
+          foreach($this->players[$arena] as $p){
+            $player = Server::getInstance()->getPlayer($p);
+            if($bitis <= 1){
+              $this->RemoveArenaPlayer($arena, $player));
+            }
+          }
+          if($bitis <= 0){
+            $this->ArenaRefresh($arena);
+            return;
+          }
+        }
+      }else{
+        $this->status[$arena] = "Done";
+      }
+    }
+  }
+}
 }
