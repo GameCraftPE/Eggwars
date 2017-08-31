@@ -6,8 +6,8 @@ use Driesboy\EggWars\Commands\HubCommand;
 use Driesboy\EggWars\Commands\EggWarsCommand;
 use Driesboy\EggWars\Task\GameTask;
 use Driesboy\EggWars\Task\SignManager;
-use Driesboy\EggWars\Task\StackTask;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
 use pocketmine\network\mcpe\protocol\AddEntityPacket;
 use pocketmine\Player;
@@ -35,21 +35,22 @@ class EggWars extends PluginBase{
   private static $ins;
 
   public $ky = array();
+  public $mk = [];
   public $sb = '§6EggWars> ';
   public $tyazi = '§8§l» §r§6Egg §fWars §l§8«';
 
   public $shop =
   [
     [
-      "name" => "Blocks",
-      "item" => Item::BRICKS_BLOCK,
+      "name" => "§eBlocks",
+      "item" => Item::STONE,
       "items" =>
       [ // item:id:amount:paymentid:paymentamount
         Item::SANDSTONE.":0:4:265:1", Item::END_STONE.":0:4:265:4", Item::GLASS.":0:2:265:1", Item::GLOWSTONE.":0:2:265:3", Item::OBSIDIAN.":0:1:266:4"
       ]
     ],
     [
-      "name" => "Weapons",
+      "name" => "§eWeapons",
       "item" => Item::GOLDEN_SWORD,
       "items" =>
       [ // item:id:amount:paymentid:paymentamount
@@ -57,7 +58,7 @@ class EggWars extends PluginBase{
       ]
     ],
     [
-      "name" => "Armor",
+      "name" => "§eArmor",
       "item" => Item::IRON_CHESTPLATE,
       "items" =>
       [ // item:id:amount:paymentid:paymentamount
@@ -65,7 +66,7 @@ class EggWars extends PluginBase{
       ]
     ],
     [
-      "name" => "Food",
+      "name" => "§eFood",
       "item" => Item::CARROT,
       "items" =>
       [ // item:id:amount:paymentid:paymentamount
@@ -73,7 +74,7 @@ class EggWars extends PluginBase{
       ]
     ],
     [
-      "name" => "PICKAXES",
+      "name" => "§ePICKAXES",
       "item" => Item::DIAMOND_PICKAXE,
       "items" =>
       [ // item:id:amount:paymentid:paymentamount
@@ -87,6 +88,8 @@ class EggWars extends PluginBase{
     @mkdir($this->getDataFolder()."Arenas/");
     @mkdir($this->getDataFolder()."Back-Up/");
 
+    self::$ins = $this;
+
     $cfg = new Config($this->getDataFolder()."config.yml", Config::YAML, [
       "StartTime" => 61,
       "EndTime" => 16,
@@ -97,16 +100,8 @@ class EggWars extends PluginBase{
     Server::getInstance()->getPluginManager()->registerEvents(new EventListener(), $this);
     Server::getInstance()->getScheduler()->scheduleRepeatingTask(new SignManager($this), 20);
     Server::getInstance()->getScheduler()->scheduleRepeatingTask(new GameTask($this), 20);
-    Server::getInstance()->getScheduler()->scheduleDelayedRepeatingTask(new StackTask($this), 15, 15);
     Server::getInstance()->getCommandMap()->register("ew", new EggwarsCommand());
     Server::getInstance()->getCommandMap()->register("lobby", new HubCommand());
-
-    $this->arenalariHazirla();
-    @mkdir($this->getDataFolder());
-    @mkdir($this->getDataFolder()."Arenas/");
-    @mkdir($this->getDataFolder()."Back-Up/");
-    self::$ins = $this;
-    $this->prepareArenas();
   }
 
   public static function getInstance(){
@@ -520,7 +515,7 @@ class EggWars extends PluginBase{
     }
   }
 
-  public function EmptyShop(Player $playerlayer){
+  public function EmptyShop(Player $player){
     $player->getLevel()->setBlock(new Vector3($player->getFloorX(), $player->getFloorY() - 4, $player->getFloorZ()), Block::get(Block::CHEST));
     $nbt = new CompoundTag("", [
       new ListTag("Items", []),
@@ -533,14 +528,16 @@ class EggWars extends PluginBase{
     $nbt->Items->setTagType(NBT::TAG_Compound);
     $tile = Tile::createTile("Chest", $player->getLevel(), $nbt);
     if($tile instanceof Chest) {
-      $tile->getInventory()->clearAll();
+      $inv = $tile->getInventory();
+      $inv->clearAll();
       $shopitems = $this->shop;
-      for($i = 0; $i < count($shopitems); $i++){
-        $mitem = Item::fromString($shopitems[$i]["item"])->setCustomName($shopitems[0]["name"]);
-        $tile->getInventory()->setItem($i, $mitem);
+      foreach($shopitems as $slot => $shopitem){
+        $mitem = Item::fromString($shopitem["item"])->setCustomName("§r".$shopitem["name"]);
+        $inv->setItem($slot, $mitem);
       }
-      $player->addWindow($tile->getInventory());
+      $this->mk[$player->getName()] = 1;
     }
+    $player->addWindow($tile->getInventory());
   }
 
   public function lightning($x, $y, $z, $level){

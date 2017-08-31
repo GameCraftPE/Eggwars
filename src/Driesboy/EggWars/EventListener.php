@@ -19,6 +19,7 @@ use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\event\inventory\InventoryCloseEvent;
 use pocketmine\inventory\ChestInventory;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\tile\Sign;
 use pocketmine\tile\Chest;
 use pocketmine\event\Listener;
@@ -171,7 +172,7 @@ class EventListener implements Listener{
           switch ($tip){
             case "§6Gold":
             if($main->ItemId($p, Item::GOLD_INGOT) >= 5){
-              $p->getInventory()->removeItem(Item::get(Item::GOLD_INGOT,0,5));
+              $p->getInventory()->removeItem(ItemFactory::get(Item::GOLD_INGOT,0,5));
               $sign->setText($y[0], "§eLevel 1", "§b5 seconds", $y[3]);
               $p->sendMessage("§aUpgraded generator!");
             }else{
@@ -180,7 +181,7 @@ class EventListener implements Listener{
             break;
             case "§bDiamond":
             if($main->ItemId($p, Item::DIAMOND) >= 5){
-              $p->getInventory()->removeItem(Item::get(Item::DIAMOND,0,5));
+              $p->getInventory()->removeItem(ItemFactory::get(Item::DIAMOND,0,5));
               $sign->setText($y[0], "§eLevel 1", "§b10 seconds", $y[3]);
               $p->sendMessage("§8» §aDiamond generator Activated!");
             }else{
@@ -193,7 +194,7 @@ class EventListener implements Listener{
           switch ($tip){
             case "§fIron":
             if($main->ItemId($p, Item::IRON_INGOT) >= 20){
-              $p->getInventory()->removeItem(Item::get(Item::IRON_INGOT,0,20));
+              $p->getInventory()->removeItem(ItemFactory::get(Item::IRON_INGOT,0,20));
               $sign->setText($y[0], "§eLevel 2", "§b3 seconds", $y[3]);
               $p->sendMessage("§aUpgraded generator!");
             }else{
@@ -202,7 +203,7 @@ class EventListener implements Listener{
             break;
             case "§6Gold":
             if($main->ItemId($p, Item::GOLD_INGOT) >= 10){
-              $p->getInventory()->removeItem(Item::get(Item::GOLD_INGOT,0,10));
+              $p->getInventory()->removeItem(ItemFactory::get(Item::GOLD_INGOT,0,10));
               $sign->setText($y[0], "§eLevel 2", "§b4 seconds", $y[3]);
               $p->sendMessage("§aUpgraded generator!");
             }else{
@@ -211,7 +212,7 @@ class EventListener implements Listener{
             break;
             case "§bDiamond":
             if($main->ItemId($p, Item::DIAMOND) >= 10){
-              $p->getInventory()->removeItem(Item::get(Item::DIAMOND,0,10));
+              $p->getInventory()->removeItem(ItemFactory::get(Item::DIAMOND,0,10));
               $sign->setText($y[0], "§eLevel 2", "§b5 seconds", $y[3]);
               $p->sendMessage("§aUpgraded generator!");
             }else{
@@ -224,7 +225,7 @@ class EventListener implements Listener{
           switch ($tip){
             case "§fIron":
             if($main->ItemId($p, Item::GOLD_INGOT) >= 20){
-              $p->getInventory()->removeItem(Item::get(Item::GOLD_INGOT,0,20));
+              $p->getInventory()->removeItem(ItemFactory::get(Item::GOLD_INGOT,0,20));
               $sign->setText($y[0], "§eLevel 3", "§b2 seconds", $y[3]);
               $p->sendMessage("§aUpgraded generator!");
             }else{
@@ -233,7 +234,7 @@ class EventListener implements Listener{
             break;
             case "§6Gold":
             if($main->ItemId($p, Item::DIAMOND) >= 10){
-              $p->getInventory()->removeItem(Item::get(Item::DIAMOND,0,10));
+              $p->getInventory()->removeItem(ItemFactory::get(Item::DIAMOND,0,10));
               $sign->setText($y[0], "§eLevel 3", "§b2 seconds", $y[3]);
               $p->sendMessage("§aUpgraded generator!");
             }else{
@@ -242,7 +243,7 @@ class EventListener implements Listener{
             break;
             case "§bDiamond":
             if($main->ItemId($p, Item::DIAMOND) >= 25){
-              $p->getInventory()->removeItem(Item::get(Item::DIAMOND,0,25));
+              $p->getInventory()->removeItem(ItemFactory::get(Item::DIAMOND,0,25));
               $sign->setText($y[0], "§eLevel 3", "§b3 seconds", "§c§lMAXIMUM");
               $p->sendMessage("§aUpgraded generator!");;
             }else{
@@ -255,7 +256,7 @@ class EventListener implements Listener{
           switch ($tip){
             case "§fIron":
             if($main->ItemId($p, Item::GOLD_INGOT) >= 50){
-              $p->getInventory()->removeItem(Item::get(Item::GOLD_INGOT,0,50));
+              $p->getInventory()->removeItem(ItemFactory::get(Item::GOLD_INGOT,0,50));
               $sign->setText($y[0], "§eLevel 4", "§b1 seconds", "§c§lMAXIMUM");
               $p->sendMessage("§aUpgraded generator!");
             }else{
@@ -264,7 +265,7 @@ class EventListener implements Listener{
             break;
             case "§6Gold":
             if($main->ItemId($p, Item::DIAMOND) >= 25){
-              $p->getInventory()->removeItem(Item::get(Item::DIAMOND,0,25));
+              $p->getInventory()->removeItem(ItemFactory::get(Item::DIAMOND,0,25));
               $sign->setText($y[0], "§eLevel 4", "§b1 seconds", "§c§lMAXIMUM");
               $p->sendMessage("§aUpgraded generator!");
             }else{
@@ -520,41 +521,42 @@ class EventListener implements Listener{
     }
   }
 
-  public function envKapat(InventoryCloseEvent $e){
-    $p = $e->getPlayer();
-    $env = $e->getInventory();
+  public function CloseInv(InventoryCloseEvent $event){
+    $player = $event->getPlayer();
     $main = EggWars::getInstance();
-    if($env instanceof ChestInventory){
-      if($o->getLevel()->getBlockIdAt($o->x, $o->y - 4, $o->z) == 54){
-        $o->getLevel()->setBlockIdAt($o->getFloorX(), $o->getFloorY() - 4, $o->getFloorZ(), 0);
+    if($event->getInventory() instanceof ChestInventory){
+      if(!empty($main->mk[$player->getName()])){
+        $player->getLevel()->setBlockIdAt($player->getFloorX(), $player->getFloorY() - 4, $player->getFloorZ(), 0);
+        unset($main->mk[$player->getName()]);
       }
     }
   }
 
   public function StoreEvent(InventoryTransactionEvent $e){
     $main = EggWars::getInstance();
-    foreach ($e->getQueue()->getTransactions() as $t) {
+    foreach ($e->getTransaction()->getTransactions() as $t) {
       $env = $t->getInventory();
       if ($env instanceof ChestInventory) {
         foreach ($env->getViewers() as $o) {
+          if(empty($main->mk[$o->getName()])) return;
           $sandik = $env->getHolder(); // item:id:amount:paymentid:paymentamount
           if ($sandik instanceof Chest) {
             $shopitems = $main->shop;
-            $item = $t->getItem($t->getSlot());
+            $item = $t->getSourceItem($t->getSlot());
             if(!($item instanceof Item)) return;
             if($env->getItem(26)->getId() == 0){ // Start menu
               foreach ($shopitems as $shopitem){
-                $mitem = Item::fromString($shopitem["id"]);
+                $mitem = Item::fromString($shopitem["item"]);
                 if($mitem->getId() == $item->getId()){
                   $env->clearAll();
-                  foreach($shopitem["items"] as $gitem){
-                    $slot = array_search($gitem, $shopitems["items"]);
+                  foreach($shopitem["items"] as $slot => $gitem){
                     $parcala = explode(":", $gitem);
                     $env->setItem($slot * 2, Item::get($parcala[0], $parcala[1], $parcala[2]));
                     $env->setItem($slot * 2 + 1, Item::get($parcala[3], 0, $parcala[4]));
                   }
                   $env->setItem(26, Item::get(Item::WOOL, 14, 1)->setCustomName("§r§cBack"));
                 }
+                $e->setCancelled();
               }
             }else{
               $illegal = [264,265,266];
@@ -564,22 +566,23 @@ class EventListener implements Listener{
                 $slot = $t->getSlot();
                 if($slot == 26){
                   $env->clearAll();
-                  for($i=0; $i<count($shopitems); $i++){
-                    $mitem = Item::fromString($shopitems[$i]["item"])->setCustomName("§r".$shopitems[0]["name"]);
-                    $env->setItem($i, $mitem);
+                  foreach($shopitems as $slot => $shopitem){
+                    $mitem = Item::fromString($shopitem["item"])->setCustomName("§r".$shopitem["name"]);
+                    $env->setItem($slot, $mitem);
                   }
+                  $e->setCancelled();
                 }else{
                   if($o->getInventory()->contains($env->getItem($slot + 1))){
+                    $o->getInventory()->removeItem($env->getItem($slot + 1));
                     $o->getInventory()->addItem($env->getItem($slot));
-                    $o->getInventory()->remove($env->getItem($slot + 1));
-                    $o->sendMessage("§8» §aItems received.");
+                    $o->getInventory()->sendContents($o);
                   }else{
                     $e->setCancelled();
-                    $o->sendMessage("§8» §cThe fee is incomplete.");
                   }
                 }
               }
             }
+            $e->setCancelled();
           }
         }
       }

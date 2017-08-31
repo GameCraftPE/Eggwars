@@ -9,6 +9,7 @@ use pocketmine\utils\Config;
 use pocketmine\Player;
 use pocketmine\level\Position;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\utils\TextFormat as TF;
@@ -23,8 +24,7 @@ class GameTask extends PluginTask{
 
   public function onRun(int $tick){
     $main = $this->p;
-    $pl = $main->getServer()->getOnlinePlayers();
-    foreach($pl as $p){
+    foreach($main->getServer()->getOnlinePlayers() as $p){
       if($p->getLevel()->getFolderName() === "ELobby"){
         if(!$p->getInventory()->getItemInHand()->hasEnchantments()){
           $p->sendPopup(TF::GRAY."You are playing on ".TF::BOLD.TF::BLUE."GameCraft PE EggWars".TF::RESET."\n".TF::DARK_GRAY."[".TF::LIGHT_PURPLE.count($main->getServer()->getOnlinePlayers()).TF::DARK_GRAY."/".TF::LIGHT_PURPLE.$main->getServer()->getMaxPlayers().TF::DARK_GRAY."] | ".TF::YELLOW."$".$main->getServer()->getPluginManager()->getPlugin("EconomyAPI")->myMoney($p).TF::DARK_GRAY." | ".TF::BOLD.TF::AQUA."Vote: ".TF::RESET.TF::GREEN."vote.gamecraftpe.tk");
@@ -169,13 +169,13 @@ class GameTask extends PluginTask{
     $item = null;
     switch($tur){
       case "§6Gold":
-      $item = Item::get(266);
+      $item = ItemFactory::get(266);
       break;
       case "§bDiamond":
-      $item = Item::get(264);
+      $item = ItemFactory::get(264);
       break;
       default:
-      $item = Item::get(265);
+      $item = ItemFactory::get(265);
       break;
     }
     return $item;

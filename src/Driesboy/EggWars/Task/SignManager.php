@@ -23,7 +23,7 @@ class SignManager extends PluginTask{
     foreach ($tiles as $t){
       if($t instanceof Sign){
         $y = $t->getText();
-        if($y[0] === $main->tyazi){
+        if($y[0] === '§8§l» §r§6Egg §fWars §l§8«'){
           $arena = str_ireplace("§e", "", $y[2]);
           $ac = new Config($main->getDataFolder()."Arenas/$arena.yml", Config::YAML);
           $status = $ac->get("Status");
