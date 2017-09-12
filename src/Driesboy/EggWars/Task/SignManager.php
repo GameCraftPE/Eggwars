@@ -24,7 +24,7 @@ class SignManager extends PluginTask{
     foreach ($tiles as $tile){
       if($tile instanceof Sign){
         $text = $tile->getText();
-        if($text[0] === "§8§l» §r§6Egg §fWars §l§8«"){
+        if($text[0] === $main->tyazi){
           $arena = str_ireplace("§e", "", $text[2]);
           $status = $main->status[$arena];
           $players = count($main->players[$arena]);

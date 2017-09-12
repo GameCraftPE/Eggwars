@@ -47,6 +47,8 @@ class EggWars extends PluginBase{
 
   public $perteamcount = array();
 
+  private static $ins;
+
   public $egg = array();
 
   public $mk = [];
@@ -103,8 +105,6 @@ class EggWars extends PluginBase{
 
   public $mo = array();
 
-  private static $ins;
-
   public function onEnable(){
     @mkdir($this->getDataFolder());
     @mkdir($this->getDataFolder()."Arenas/");
@@ -158,28 +158,26 @@ class EggWars extends PluginBase{
   }
 
   public function RemoveArenaPlayer($arena, Player $player){
+    $ac = new Config($this->getDataFolder()."Arenas/$arena.yml", Config::YAML);
+    $status = $this->status[$arena];
     $name = $player->getName();
-    if($this->status[$arena] === "Lobby"){
+    if($status === "Lobby"){
       $this->ArenaMessage($arena, "§6$name left the game ". count($this->players[$arena]) . "/" .$this->teamscount[$arena] * $this->perteamcount[$arena]);
     }
-    $this->resetPlayer($player);
-    $player->setGamemode($this->getServer()->getDefaultGamemode());
-    $player->teleport(Server::getInstance()->getDefaultLevel()->getSafeSpawn());
-    if ($player->hasPermission("rank.diamond")){
-      $player->setGamemode("1");
-      $pk = new ContainerSetContentPacket();
-      $pk->windowid = ContainerIds::CREATIVE;
-      $pk->targetEid = $player->getId();
-      $player->dataPacket($pk);
+    $players = $this->players[$arena];
+    if(@in_array($player->getName(), $players)){
+      $this->resetPlayer($player);
+      $player->setGamemode($this->getServer()->getDefaultGamemode());
+      if ($player->hasPermission("rank.diamond")){
+        $player->setGamemode("1");
+        $pk = new ContainerSetContentPacket();
+        $pk->windowid = ContainerIds::CREATIVE;
+        $pk->targetEid = $player->getId();
+        $player->dataPacket($pk);
+      }
+      $player->teleport(Server::getInstance()->getDefaultLevel()->getSafeSpawn());
+      unset($players[array_search($player->getName(), $players)]);
     }
-    $this->removeElementWithValue($this->players, $arena, $player->getName());
-  }
-  public function removeElementWithValue($array, $key, $value){
-     foreach($array as $subKey => $subArray){
-          if($subArray[$key] == $value){
-               unset($array[$subKey]);
-          }
-     }
   }
 
   public function AddArenaPlayer($arena, Player $player){
@@ -191,7 +189,7 @@ class EggWars extends PluginBase{
   }
 
   public function Teams(){
-    return $teams = array(
+    $teams = array(
       "WHITE" => "§f",
       "ORANGE" => "§6",
       "LIGHT-BLUE" => "§b",
@@ -207,11 +205,12 @@ class EggWars extends PluginBase{
       "GREEN" => "§2",
       "RED" => "§c",
       "BLACK" => "§0"
-    );;
+    );
+    return $teams;
   }
 
   public function TeamSearcher(){
-    return array(
+    $tyc = array(
       "WHITE" => 0,
       "ORANGE" => 1,
       "LIGHT-BLUE" => 3,
@@ -228,6 +227,7 @@ class EggWars extends PluginBase{
       "RED" => 14,
       "BLACK" => 15
     );
+    return $tyc;
   }
 
 
@@ -277,14 +277,14 @@ class EggWars extends PluginBase{
         if($tbo <= 8) {
           $ac = new Config($this->getDataFolder() . "Arenas/$arena.yml", Config::YAML);
           $cfg = new Config($this->getDataFolder() . "config.yml", Config::YAML);
-          $this->players[$arena] = array();
           $this->status[$arena] = "Lobby";
           $this->StartTime[$arena] = (int) $cfg->get("StartTime");
           $this->EndTime[$arena] = (int) $cfg->get("EndTime");
           $ac->set("Team", (int) $team);
           $ac->set("PlayersPerTeam", (int) $tbo);
           $ac->save();
-          $player->sendMessage("§6EggWars> §a$arena was successfully built!");
+          $this->players[$arena] = array();
+          $player->sendMessage($this->sb."§a$arena was successfully built!");
         }else{
           $player->sendMessage("§8» §cThe number of players per team should be 8 or less.");
         }
@@ -381,7 +381,7 @@ class EggWars extends PluginBase{
     return $items;
   }
 
-  public function PopupStatus($arena){
+  public function Status($arena){
     $status = array();
     $plus = "§8[§a+§8]";
     $minus = "§8[§c-§8]";
