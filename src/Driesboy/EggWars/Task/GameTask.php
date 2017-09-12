@@ -25,15 +25,16 @@ class GameTask extends PluginTask{
     parent::__construct($plugin);
     $this->plugin = $plugin;
   }
- 
-  public function onRun(int $currentTick){
-    foreach($this->plugin->getServer()->getOnlinePlayers() as $player){
+
+  public function onRun(int $tick){
+    $main = $this->plugin;
+    foreach($main->getServer()->getOnlinePlayers() as $player){
       if($player->getLevel()->getFolderName() === "ELobby"){
         if(!$player->getInventory()->getItemInHand()->hasEnchantments()){
           $player->sendPopup(TF::GRAY."You are playing on ".TF::BOLD.TF::BLUE."GameCraft PE EggWars".TF::RESET."\n".TF::DARK_GRAY."[".TF::LIGHT_PURPLE.count($main->getServer()->getOnlinePlayers()).TF::DARK_GRAY."/".TF::LIGHT_PURPLE.$main->getServer()->getMaxPlayers().TF::DARK_GRAY."] | ".TF::YELLOW."$".$main->getServer()->getPluginManager()->getPlugin("EconomyAPI")->myMoney($player).TF::DARK_GRAY." | ".TF::BOLD.TF::AQUA."Vote: ".TF::RESET.TF::GREEN."vote.gamecraftpe.tk");
         }
       }
     }
-    $this->plugin->tick();
+    $main->tick();
   }
 }

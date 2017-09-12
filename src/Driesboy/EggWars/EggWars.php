@@ -120,6 +120,8 @@ class EggWars extends PluginBase{
     $cfg->save();
 
     Server::getInstance()->getPluginManager()->registerEvents(new EventListener(), $this);
+    Server::getInstance()->getScheduler()->scheduleRepeatingTask(new SignManager($this), 20);
+
     Server::getInstance()->getScheduler()->scheduleRepeatingTask(new Game($this), 20);
     Server::getInstance()->getScheduler()->scheduleRepeatingTask(new ParticleTask($this), 0.001);
     Server::getInstance()->getCommandMap()->register("ew", new EggwarsCommand());
@@ -171,7 +173,6 @@ class EggWars extends PluginBase{
       $player->dataPacket($pk);
     }
     unset($this->players[$arena][array_search($player->getName(), $this->players[$arena])]);
-    $this->updateSigns();
   }
 
   public function AddArenaPlayer($arena, Player $player){
@@ -179,7 +180,6 @@ class EggWars extends PluginBase{
       $this->resetPlayer($player);
       $player->setGamemode("0");
       array_push($this->players[$arena], $player->getName());
-      $this->updateSigns();
     }
   }
 
@@ -277,7 +277,6 @@ class EggWars extends PluginBase{
           $ac->set("Team", (int) $team);
           $ac->set("PlayersPerTeam", (int) $tbo);
           $ac->save();
-          $this->updateSigns();
           $player->sendMessage("§6EggWars> §a$arena was successfully built!");
         }else{
           $player->sendMessage("§8» §cThe number of players per team should be 8 or less.");
@@ -480,7 +479,6 @@ class EggWars extends PluginBase{
     $this->players[$arena] = array();
     unset($this->egg[$arena]);
     $this->MapReset($arena);
-    $this->updateSigns();
   }
 
   public function CheckOneTeamRemained($arena){
@@ -505,7 +503,6 @@ class EggWars extends PluginBase{
         $team = $this->PlayerTeamColor($player);
       }
       Server::getInstance()->broadcastMessage("$team §9won the game on §b$arena!");
-      $this->updateSigns();
     }
   }
 
@@ -548,34 +545,6 @@ class EggWars extends PluginBase{
     $pk->metadata = array();
     foreach($level->getPlayers() as $pl){
       $pl->dataPacket($pk);
-    }
-  }
-
-  public function updateSigns(){
-    $level = Server::getInstance()->getDefaultLevel();
-    $tiles = $level->getTiles();
-    foreach ($tiles as $tile){
-      if($tile instanceof Sign){
-        $text = $tile->getText();
-        if($text[0] === "§8§l» §r§6Egg §fWars §l§8«"){
-          $arena = str_ireplace("§e", "", $text[2]);
-          $players = count($this->players[$arena]);
-          $fullPlayer = $this->teamscount[$arena] * $this->perteamcount[$arena];
-          $newstatus = null;
-          if($this->status[$arena] === "Lobby"){
-            if($players >= $fullPlayer){
-              $newstatus = "§c§lFull";
-            }else{
-              $newstatus = "§a§lTap to join";
-            }
-          }elseif ($this->status[$arena] === "In-Game"){
-            $newstatus = "§d§lIn-Game";
-          }elseif($this->status[$arena] === "Done"){
-            $newstatus = "§9§lRestarting";
-          }
-          $tile->setText($text[0], "§f$players/$fullPlayer", $text[2], $newstatus);
-        }
-      }
     }
   }
 
@@ -633,7 +602,6 @@ class EggWars extends PluginBase{
                   }
                 }
                 $this->status[$arena] = "In-Game";
-                $this->updateSigns();
               }
               break;
             }
@@ -697,8 +665,8 @@ class EggWars extends PluginBase{
         }
       }else{
         $this->status[$arena] = "Done";
-        $this->updateSigns();
       }
     }
   }
+}
 }

@@ -13,23 +13,22 @@ use pocketmine\utils\TextFormat as TF;
 
 class ParticleTask extends PluginTask{
 
-  /** @var float */
+  private $p;
+
   private $degrees;
 
-  private $plugin;
-
-  public function __construct($plugin){
-    parent::__construct($plugin);
-    $this->plugin = $plugin;
+  public function __construct($p){
+    $this->p = $p;
+    parent::__construct($p);
   }
 
-  public function onRun(int $currentTick){
-    $main = $this->plugin;
-    foreach($main->getServer()->getOnlinePlayers() as $player) {
-      if($player->hasPermission("rank.lapis")) {
-        $x = (cos(deg2rad($this->degrees)) * 0.6) + $player->x;
-        $z = (sin(deg2rad($this->degrees)) * 0.6) + $player->z;
-        $player->getLevel()->addParticle(new FlameParticle(new Vector3($x, $player->y + 2.2, $z)));
+  public function onRun(int $tick){
+    $main = $this->p;
+    foreach($main->getServer()->getOnlinePlayers() as $p) {
+      if($p->hasPermission("rank.lapis")) {
+        $x = (cos(deg2rad($this->degrees)) * 0.6) + $p->x;
+        $z = (sin(deg2rad($this->degrees)) * 0.6) + $p->z;
+        $p->getLevel()->addParticle(new FlameParticle(new Vector3($x, $p->y + 2.2, $z)));
         if($this->degrees === 360) {
           $this->degrees = 0;
         } else {
